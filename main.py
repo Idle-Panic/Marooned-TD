@@ -19,7 +19,7 @@ class Game:
         self.clock = pygame.time.Clock()
 
         pygame.display.set_caption("Marooned TD")
-        self.screen = pygame.display.set_mode((360, 240), pygame.SCALED)
+        self.screen = pygame.display.set_mode((360, 240))
         
         self.tile_size = 32
         self.camera_offset = [0, 0]
