@@ -2,11 +2,13 @@ import pygame
 import os
 
 BASE_IMG_PATH = "Images/"
+BASE_AUDIO_PATH = "Audio/"
 
 pygame.init()
+pygame.mixer.init()
 
-font1 = pygame.font.Font("fs-marianne.ttf", 32)
-font2 = pygame.font.Font("fs-marianne.ttf", 16)
+font1 = pygame.font.Font("Font/fs-marianne.ttf", 32)
+font2 = pygame.font.Font("Font/fs-marianne.ttf", 16)
 
 def load_image(path):
     image = pygame.image.load(BASE_IMG_PATH + path).convert_alpha()
@@ -17,6 +19,12 @@ def load_images(path):
     for image_name in os.listdir(BASE_IMG_PATH + path):
         images.append(load_image(path + "/" + image_name))
     return images
+
+def load_audio(path, type):
+	if type == "music":
+		return(pygame.mixer.music.load(BASE_AUDIO_PATH + path))
+	else:
+		return(pygame.mixer.Sound(BASE_AUDIO_PATH + path))
 
 def convert_tilemap(file, tile_size, tile_diameter):
     tile_data = {}

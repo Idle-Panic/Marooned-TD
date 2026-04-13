@@ -33,9 +33,9 @@ class GUI:
 		screen.blit(self.components["background"].image, self.components["background"].position)
 		for icon in self.components["icons"].icons:
 			if not icon["mode"] or icon["mode"] == self.gui_mode:
-				if icon["rect"].midtop == (360 / 2, 240 / 2 - 16) and self.showing_blueprint:   # position -> midtop location of blueprints
+				if icon["rect"].midtop == (360 / 2, 240 / 2 - 14) and self.showing_blueprint:   # position -> midtop location of blueprints
 					screen.blit(icon["image"], icon["rect"])
-				elif icon["rect"].midtop != (360 / 2, 240 / 2 - 16):
+				elif icon["rect"].midtop != (360 / 2, 240 / 2 - 14):
 					screen.blit(icon["image"], icon["rect"])
 		
 		self.components["texts"].update()
@@ -97,7 +97,7 @@ class Buttons:
 							if self.gui.showing_blueprint == False:
 								self.gui.showing_blueprint = True
 							else:
-								self.gui.main.tower_group.add(Tower("coconut_launcher", (360 / 2 - 16 - self.gui.main.camera_offset[0], 240 / 2 - 2 - self.gui.main.camera_offset[1])))
+								self.gui.main.add_tower("coconut_launcher", (360 / 2 - self.gui.main.camera_offset[0], 240 / 2 - self.gui.main.camera_offset[1]))
 								self.gui.showing_blueprint = False
 				else:
 					button["being_pressed"] = False
@@ -115,7 +115,7 @@ class Icons:
 		dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon1", (360-self.gui.background_width+84, 94), "stats"))),
 		dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon1", (360-self.gui.background_width+84, 126), "stats"))),
 		dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon1", (360-self.gui.background_width+84, 158), "stats"))),
-		dict(zip(["image", "rect", "mode"], self.get_icon_rect("coconut_launcher_blueprint_green", (360 / 2, 240 / 2 - 16), "build"))),
+		dict(zip(["image", "rect", "mode"], self.get_icon_rect("coconut_launcher_blueprint_green", (360 / 2, 240 / 2 - 14), "build"))),
 		]
 		
 	def get_icon_rect(self, img, pos, mode):
@@ -141,6 +141,9 @@ class Texts:
 		]
 		
 	def update(self):
+		self.coins = self.gui.main.coins
+		self.wave = self.gui.main.wave
+		self.health = self.gui.main.health
 		self.towers = self.gui.main.tower_amount
 		self.texts[1]["text"] = f"Coins : {self.coins}"
 		self.texts[2]["text"] = f"Wave : {self.wave}"
@@ -184,5 +187,3 @@ class Steering_Wheel:
 			self.gui.main.camera_offset[1] -= offset[1] / distance / factor * 2
 		except:
 			pass
-		
-		

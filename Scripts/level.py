@@ -54,4 +54,3 @@ class Props:
                 if img == rect:
                     for p in self.rects.get(rect):
                         screen.blit(self.images[img], (p[0] + camera_offset[0], p[1] + camera_offset[1]))
-                
