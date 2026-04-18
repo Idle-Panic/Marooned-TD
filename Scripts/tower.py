@@ -26,11 +26,11 @@ class Tower(pygame.sprite.Sprite):
                         main.projectile_group.add(Projectile(self.type_dict, (self.rect.center[0], self.rect.center[1]), enemy))
                         self.last_time_fired = pygame.time.get_ticks()
                     break
-        self.rotation = math.degrees(math.atan2(self.position[0] - self.enemy_attacking_pos[0], self.position[1] - 12 - self.enemy_attacking_pos[1])) - 180
+        self.rotation = math.degrees(math.atan2(self.position[0] - self.enemy_attacking_pos[0], self.position[1] - self.enemy_attacking_pos[1])) - 180
         rotated_image_upper = pygame.transform.rotate(self.image_upper, self.rotation)
         screen.blit(self.image_lower, (self.rect.x + camera_offset[0], self.rect.y + 16 + camera_offset[1]))
         screen.blit(rotated_image_upper, rotated_image_upper.get_rect(center = (self.rect.x  + 16 + camera_offset[0],
-        self.rect.y + 16 + camera_offset[1])))
+        self.rect.y + 20 + camera_offset[1])))
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, type_dict, pos, enemy):

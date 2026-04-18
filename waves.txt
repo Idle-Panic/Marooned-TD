@@ -1,2 +1,4 @@
-crab,4;crab,4;crab,4;crab,4;crab,4;crab,4
-crab,4;crab,4;crab,4;crab,4;crab,4;crab,4;crab,4;crab,4
+crab,3;crab,3;crab,3;crab,3;crab,3;crab,3
+bat,3;bat,3;crab,2.5;crab,2.5;crab,2.5;crab,2.5;crab,2.5;crab,2.5
+crab,2;crab,2;crab,2;crab,2;bat,2.5;bat,2.5;bat,2.5;bat,2.5
+bat,2;bat,2;bat,2;bat,2;bat,4;bat,2.5;bat,2.5;bat,2.5

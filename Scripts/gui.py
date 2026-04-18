@@ -24,6 +24,8 @@ class GUI:
 		"build_button_up" : load_image("gui/build_button_up.png"),
 		"build_button_down" : load_image("gui/build_button_down.png"),
 		"coconut_launcher_blueprint_green" : load_image("towers/coconut_launcher/blueprint_green.png"),
+		"startwave_button_up" : load_image("gui/startwave_button_up.png"),
+		"startwave_button_down" : load_image("gui/startwave_button_down.png"),
 		}
 		self.blueprints = {
 		}
@@ -45,7 +47,7 @@ class GUI:
 					process_font(text["text"], text["color"], text["position"], self.main.screen)	
 					
 		for button in self.components["buttons"].buttons:
-			if button["mode"] == self.gui_mode:
+			if not button["mode"] or button["mode"] == self.gui_mode:
 				if button["being_pressed"] == False:
 					screen.blit(button["image_up"], button["rect"])
 				else:
@@ -71,6 +73,7 @@ class Buttons:
 		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("sabre_button_up_right", (360-self.gui.background_width+100, 37), "stats"))),
 		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("sabre_button_up_left", (360-self.gui.background_width+36, 1), "build"))),
 		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("build_button_up", (360-self.gui.background_width+75, 56), "build"))),
+		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("startwave_button_up", (26, 2), False))),
 		]
 		
 	def get_button_rect(self, img, pos, mode):
@@ -93,6 +96,8 @@ class Buttons:
 							self.gui.gui_mode = "build"
 						if button["image_up"] == self.gui.images["sabre_button_up_left"] and button["mode"] == "build":
 							self.gui.gui_mode = "stats"
+						if button["image_up"] == self.gui.images["startwave_button_up"] and button["mode"] == False:
+							self.gui.main.wave_started = True
 						if button["image_up"] == self.gui.images["build_button_up"] and self.gui.gui_mode == "build":
 							if self.gui.showing_blueprint == False:
 								self.gui.showing_blueprint = True

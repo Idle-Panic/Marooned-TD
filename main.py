@@ -36,11 +36,13 @@ class Game:
         }
         
         self.enemy_stats = [
-        {"type" : "crab", "health" : 5, "speed" : 0.25},
+        {"type" : "crab", "health" : 6, "speed" : 0.25},
+        {"type" : "bat", "health" : 8, "speed" : 0.5},
+        {"type" : "hermit_crab", "health" : 24, "speed" : 0.2},
         ]
         
         self.tower_stats = [
-        {"type" : "coconut_launcher", "price" : 25, "attack" : 1, "speed" : 2, "range" : 80, "attack_type" : "normal"},
+        {"type" : "coconut_launcher", "price" : 30, "attack" : 1, "speed" : 2, "range" : 80, "attack_type" : "normal"},
         ]
         
         self.ground_tilemap = Tilemap(self, self.tile_size, 15, convert_tilemap("ground_tiles.txt", self.tile_size, 15), "ground_tiles", 0, False)
@@ -73,7 +75,9 @@ class Game:
     def add_tower(self, type, position):
         for i in self.tower_stats:
             if type == i["type"]:
-                self.tower_group.add(Tower(self.tower_stats[self.tower_stats.index(i)], position))
+                if self.tower_stats[self.tower_stats.index(i)]["price"] <= self.coins:
+                    self.tower_group.add(Tower(self.tower_stats[self.tower_stats.index(i)], position))
+                    self.coins -= self.tower_stats[self.tower_stats.index(i)]["price"]
                 
     def add_enemy(self, type):
         for i in self.enemy_stats:
@@ -115,9 +119,6 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN and self.wave_started == False:
-                        self.wave_started = True
                         
                 # DETERMINE PATH INDICES (DEVELOPMENT ONLY)
                 #    if event.key in [pygame.K_SPACE, pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN]:
@@ -134,7 +135,7 @@ class Game:
             
             self.props.render(self.screen, self.camera_offset)
             self.tower_group.update(self.screen, self.camera_offset, self.enemy_group, self)
-            self.enemy_group.update(self.screen, self.camera_offset, self.path)
+            self.enemy_group.update(self.screen, self.camera_offset, self.path, self)
             self.projectile_group.update(self.screen, self.camera_offset)
             
             self.gui.render(self.screen)

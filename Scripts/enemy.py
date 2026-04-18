@@ -4,7 +4,7 @@ from Scripts.utilities import load_image
 class Wave_Data:
     def __init__(self, main, txtfile):
         self.main = main
-        self.wave_amount = 2
+        self.wave_amount = 4
         self.wave_enemies = []
         self.wave_pauses = []
         self.wave_started = False
@@ -51,6 +51,7 @@ class Enemy(pygame.sprite.Sprite):
         self.path_index = 1
         
         self.speed = data["speed"]
+        self.max_health = data["health"]
         self.health = data["health"]
         
     def get_img(self, data):
@@ -59,7 +60,7 @@ class Enemy(pygame.sprite.Sprite):
     def rect(self, pos):
         return self.image.get_rect(center = pos)
         
-    def update(self, screen, camera_offset, path):
+    def update(self, screen, camera_offset, path, main):
         self.position[0] -= self.get_sign(self.position[0] - path[self.path_index][0]) * self.speed
         self.position[1] -= self.get_sign(self.position[1] - path[self.path_index][1]) * self.speed
         if (int(self.position[0]), int(self.position[1])) == path[self.path_index]:
@@ -67,6 +68,7 @@ class Enemy(pygame.sprite.Sprite):
                 self.path_index += 1
         if self.health <= 0:
             self.kill()
+            main.coins += int(self.max_health / 2)
         screen.blit(self.image, self.rect((self.position[0] + camera_offset[0], self.position[1] + camera_offset[1])))
         
     def get_sign(self, num):
