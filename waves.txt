@@ -1,0 +1,6 @@
+crab,2.5;crab,2.5;crab,4;crab,2.5;crab,2.5;crab,2.5
+bat,3;bat,4;crab,2.5;crab,2.5;crab,2.5;crab,2.5;crab,2.5;crab,2.5
+crab,2;crab,2;crab,2;crab,5;bat,2.5;bat,2.5;bat,2.5;bat,2.5
+bat,2.5;bat,2.5;bat,2.5;bat,2.5;bat,5;bat,2.5;bat,2.5;bat,2.5
+bat,2;bat,2;hermit_crab,6;crab,2;crab,2;crab,2;crab,2
+hermit_crab,4;hermit_crab,4;hermit_crab,4
