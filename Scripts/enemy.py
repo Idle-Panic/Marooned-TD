@@ -1,5 +1,5 @@
 import pygame
-from Scripts.utilities import load_image
+from Scripts.utilities import load_image, load_images
 
 class Wave_Data:
     def __init__(self, main, txtfile):
@@ -46,7 +46,8 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, data):
         super().__init__()
         self.START_LOCATION = (368, 112)
-        self.image = self.get_img(data)
+        self.images = self.get_imgs(data)
+        self.image = self.images[0]
         self.position = list(self.START_LOCATION)
         self.path_index = 1
         self.rect = self.image.get_rect()
@@ -54,9 +55,10 @@ class Enemy(pygame.sprite.Sprite):
         self.speed = data["speed"]
         self.max_health = data["health"]
         self.health = data["health"]
+        self.init_time = pygame.time.get_ticks()
         
-    def get_img(self, data):
-        return load_image("enemies/" + data["type"] + "/00.png")
+    def get_imgs(self, data):
+        return load_images("enemies/" + data["type"])
         
     def rect(self, pos):
         return self.image.get_rect(center = pos)
@@ -78,6 +80,7 @@ class Enemy(pygame.sprite.Sprite):
         if self.health <= 0:
             self.kill()
             main.coins += int(self.max_health / 2)
+        self.image = self.images[int((pygame.time.get_ticks() - self.init_time) / 200 * self.speed) % len(self.images)]
         self.rect = self.image.get_rect(center = self.position)
         
     def get_sign(self, num):

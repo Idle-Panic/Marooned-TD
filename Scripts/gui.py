@@ -43,8 +43,12 @@ class GUI:
 			self.components["blueprints"].update(self.main.camera_offset)
 			if self.components["blueprints"].valid == True:
 				screen.blit(self.components["blueprints"].blueprints[self.viewing_tower]["image_green"], self.components["blueprints"].rect)
+				pygame.draw.circle(screen, (140, 214, 18), (self.components["blueprints"].rect.centerx, self.components["blueprints"].rect.centery + 2),
+				self.main.tower_stats[self.viewing_tower]["range"], 2)
 			else:
 				screen.blit(self.components["blueprints"].blueprints[self.viewing_tower]["image_red"], self.components["blueprints"].rect)
+				pygame.draw.circle(screen, (224, 60, 40), (self.components["blueprints"].rect.centerx, self.components["blueprints"].rect.centery + 2), 
+				self.main.tower_stats[self.viewing_tower]["range"], 2)
 		
 		for icon in self.components["icons"].icons:
 			if not icon["mode"] or icon["mode"] == self.gui_mode:

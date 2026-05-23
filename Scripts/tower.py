@@ -8,9 +8,11 @@ class Tower(pygame.sprite.Sprite):
         self.main = main
         self.type_dict = type_dict
         self.image_lower = load_image("towers/" + type_dict["type"] + "/platform.png")
-        self.image_upper = load_image("towers/" + type_dict["type"] + "/upper/00.png")
-        self.position = pos # 180, 120
+        self.images_upper = load_images("towers/" + type_dict["type"] + "/upper")
+        self.image_upper = self.images_upper[0]
+        self.position = pos
         self.rect = self.image_lower.get_rect(center = self.position)
+        self.image = load_image("towers/" + type_dict["type"] + "/platform.png")
         self.attack = type_dict["attack"]
         self.speed = type_dict["speed"]
         self.range = type_dict["range"]
@@ -20,19 +22,29 @@ class Tower(pygame.sprite.Sprite):
         self.last_time_fired = 0
 	
     def update(self, screen, camera_offset, enemy_group, main):
+        print(self.images_upper)
+        surface = pygame.Surface((32, 63))
+        surface.set_colorkey((0, 0, 0))
+        
         if len(enemy_group) != 0:
             for enemy in enemy_group:
-                if pygame.math.Vector2(enemy.position).distance_to(pygame.math.Vector2((self.position[0], self.position[1]))) < self.range:
+                if pygame.math.Vector2(enemy.position).distance_to(pygame.math.Vector2((self.position[0], self.position[1] + 12))) < self.range:
                     self.enemy_attacking_pos = enemy.position
                     if pygame.time.get_ticks() >= self.last_time_fired + 1000 * self.speed:
                         main.projectile_group.add(Projectile(self.type_dict, (self.rect.center[0], self.rect.center[1]), enemy, self.main))
                         self.last_time_fired = pygame.time.get_ticks()
                     break
-        self.rotation = math.degrees(math.atan2(self.position[0] - self.enemy_attacking_pos[0], self.position[1] - self.enemy_attacking_pos[1])) - 180
+        self.image_upper = self.images_upper[pygame.math.clamp(int(
+        (pygame.time.get_ticks() - self.last_time_fired) / 1000 * self.speed * len(self.images_upper)
+        ), 0, len(self.images_upper) - 1)]
+        self.rotation = math.degrees(math.atan2(self.position[0] - self.enemy_attacking_pos[0], self.position[1] + 12 - self.enemy_attacking_pos[1])) - 180
         rotated_image_upper = pygame.transform.rotate(self.image_upper, self.rotation)
-        screen.blit(self.image_lower, (self.rect.x + camera_offset[0], self.rect.y + 16 + camera_offset[1]))
-        screen.blit(rotated_image_upper, rotated_image_upper.get_rect(center = (self.rect.x  + 16 + camera_offset[0],
-        self.rect.y + 20 + camera_offset[1])))
+        
+        surface.blit(self.image_lower, (0, 31))
+        surface.blit(rotated_image_upper, rotated_image_upper.get_rect(center = (16, 35)))
+        self.rect = surface.get_rect(center = self.position)
+        self.image = surface
+        # What are all of these random values in this method? I don't know, but it works!
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, type_dict, pos, enemy, main):
@@ -68,7 +80,8 @@ class Area_Attack(pygame.sprite.Sprite):
         self.main = main
         self.position = pygame.math.Vector2(pos)
         self.attack = type_dict["attack"]
-        self.image = load_image("towers/" + type_dict["type"] + "/area_attack/00.png")
+        self.images = load_images("towers/" + type_dict["type"] + "/area_attack")
+        self.image = self.images[0]
         self.init_time = pygame.time.get_ticks()
         for enemy in self.main.enemy_group:
             if pygame.math.Vector2(enemy.position).distance_to(pygame.math.Vector2((self.position[0], self.position[1]))) < 32:
@@ -78,6 +91,7 @@ class Area_Attack(pygame.sprite.Sprite):
         return self.image.get_rect(center = pos)
         
     def update(self, screen, camera_offset, dt):
-        if pygame.time.get_ticks() > self.init_time + 1600:
+        if pygame.time.get_ticks() > self.init_time + 720:
             self.kill()
+        self.image = self.images[pygame.math.clamp(int((pygame.time.get_ticks() - self.init_time) / 720 * len(self.images)), 0, len(self.images) - 1)]
         screen.blit(self.image, self.rect((self.position[0] + camera_offset[0], self.position[1] + camera_offset[1])))

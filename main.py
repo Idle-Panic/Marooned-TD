@@ -105,7 +105,10 @@ class Game:
     
     def add_tower(self, type, position):
         if self.tower_stats[type]["price"] <= self.coins:
-            self.tower_group.add(Tower(self.tower_stats[type], position, self))
+            tower = Tower(self.tower_stats[type], position, self)
+            self.tower_group.add(tower)
+            self.render_group.add(tower)
+            
             self.coins -= self.tower_stats[type]["price"]
                 
     def add_enemy(self, type):
@@ -172,10 +175,10 @@ class Game:
             
             self.tower_group.update(self.screen, render_offset, self.enemy_group, self)
             self.enemy_group.update(self.screen, render_offset, self.path, self, self.dt)
-            self.projectile_group.update(self.screen, render_offset, self.dt)
-            self.area_attack_group.update(self.screen, render_offset, self.dt)
             
             self.render_group.draw(self.screen, render_offset)
+            self.projectile_group.update(self.screen, render_offset, self.dt)
+            self.area_attack_group.update(self.screen, render_offset, self.dt)
             
             self.gui.render(self.screen)
             
