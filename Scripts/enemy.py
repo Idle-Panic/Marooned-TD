@@ -49,6 +49,7 @@ class Enemy(pygame.sprite.Sprite):
         self.image = self.get_img(data)
         self.position = list(self.START_LOCATION)
         self.path_index = 1
+        self.rect = self.image.get_rect()
         
         self.speed = data["speed"]
         self.max_health = data["health"]
@@ -77,7 +78,7 @@ class Enemy(pygame.sprite.Sprite):
         if self.health <= 0:
             self.kill()
             main.coins += int(self.max_health / 2)
-        screen.blit(self.image, self.rect((self.position[0] + camera_offset[0], self.position[1] + camera_offset[1])))
+        self.rect = self.image.get_rect(center = self.position)
         
     def get_sign(self, num):
         if num > 0:

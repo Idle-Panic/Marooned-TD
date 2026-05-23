@@ -44,6 +44,31 @@ def process_font(text, color, position, screen):
     text_rendered = font.render(text, False, color)
     text_rect = text_rendered.get_rect(midtop = (position))
     screen.blit(text_rendered, text_rect)
-    
+
 def animate(images, does_loop, frame_time):
     pass
+    
+class SortedGroup(pygame.sprite.Group):
+    def __init__(self):
+        super().__init__()
+        
+    def draw(self, surface, camera_offset, bgd=None, special_flags=0):
+        sprites = sorted(self.sprites(), key = lambda spr: spr.rect.midbottom[1])
+        if hasattr(surface, "blits"):
+            self.spritedict.update(
+                zip(
+                    sprites,
+                    surface.blits(
+                        (spr.image, (spr.rect.x + camera_offset[0], spr.rect.y + camera_offset[1]), None, special_flags) for spr in sprites
+                    ),
+                )
+            )
+        else:
+            for spr in sprites:
+                self.spritedict[spr] = surface.blit(
+                    spr.image, spr.rect, None, special_flags
+                )
+        self.lostsprites = []
+        dirty = self.lostsprites
+
+        return dirty

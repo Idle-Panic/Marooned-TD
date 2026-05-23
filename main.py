@@ -2,8 +2,8 @@ import pygame
 import asyncio
 import sys
 
-from Scripts.level import Tilemap, Props
-from Scripts.utilities import load_image, load_images, convert_tilemap, process_font, load_audio
+from Scripts.level import Tilemap, Prop
+from Scripts.utilities import load_image, load_images, convert_tilemap, process_font, load_audio, SortedGroup
 from Scripts.gui import GUI
 from Scripts.tower import Tower
 from Scripts.enemy import Enemy, Wave_Data
@@ -24,6 +24,8 @@ class Game:
         pygame.display.set_caption("Marooned TD")
         self.screen = pygame.display.set_mode((360, 240), self.flags)
         
+        self.render_group = SortedGroup()
+        
         self.tile_size = 32
         self.camera_offset = [0, 0]
         
@@ -37,6 +39,26 @@ class Game:
         "water_tiles" : load_images("water_tiles"),
         "path_tiles" : load_images("path_tiles")
         }
+        
+        self.prop_images = {
+        "cave" : load_image("props/cave.png"),
+        "palm" : load_image("props/palm.png")
+        }
+
+        self.prop_rects = {
+        "cave" : (self.img_to_rect("cave", (368, 128)),),
+        "palm" : (self.img_to_rect("palm", (160, 124)), self.img_to_rect("palm", (284, 94)), self.img_to_rect("palm", (414, 160)), self.img_to_rect("palm", (388, 278)),
+        self.img_to_rect("palm", (254, 394)), self.img_to_rect("palm", (64, 320)),),
+        }
+        self.prop_group = pygame.sprite.Group()
+        
+        for img in self.prop_images:
+            for rect in self.prop_rects:
+                if img == rect:
+                    for r in self.prop_rects[img]:
+                        prop = Prop(self.prop_images.get(img), r)
+                        self.prop_group.add(prop)
+                        self.render_group.add(prop)
         
         self.enemy_stats = [
         {"type" : "crab", "health" : 6, "speed" : 0.25},
@@ -58,7 +80,6 @@ class Game:
         pygame.mixer.music.play(-1, 0.0, 4000)
         
         self.gui = GUI(self)
-        self.props = Props()
         self.wave_data = Wave_Data(self, "waves.txt")
         
         self.mouse_pos = (0, 0)
@@ -77,7 +98,11 @@ class Game:
         self.coins = 80
         self.health = 100
         self.tower_amount = 0
-        
+    
+    def img_to_rect(self, image, pos):
+        rect = self.prop_images[image].get_rect(midbottom = pos)
+        return rect
+    
     def add_tower(self, type, position):
         if self.tower_stats[type]["price"] <= self.coins:
             self.tower_group.add(Tower(self.tower_stats[type], position, self))
@@ -86,7 +111,9 @@ class Game:
     def add_enemy(self, type):
         for i in self.enemy_stats:
             if type == i["type"]:
-                self.enemy_group.add(Enemy(self.enemy_stats[self.enemy_stats.index(i)]))
+                enemy = Enemy(self.enemy_stats[self.enemy_stats.index(i)])
+                self.enemy_group.add(enemy)
+                self.render_group.add(enemy)
                 
     def determine_path_index(self, key, position):
         if key == 1073741903:
@@ -143,11 +170,12 @@ class Game:
             self.ground_tilemap.render(self.screen, render_offset)
             self.path_tilemap.render(self.screen, render_offset)
             
-            self.props.render(self.screen, render_offset)
             self.tower_group.update(self.screen, render_offset, self.enemy_group, self)
             self.enemy_group.update(self.screen, render_offset, self.path, self, self.dt)
             self.projectile_group.update(self.screen, render_offset, self.dt)
             self.area_attack_group.update(self.screen, render_offset, self.dt)
+            
+            self.render_group.draw(self.screen, render_offset)
             
             self.gui.render(self.screen)
             
