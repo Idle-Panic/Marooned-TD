@@ -22,7 +22,6 @@ class Tower(pygame.sprite.Sprite):
         self.last_time_fired = 0
 	
     def update(self, screen, camera_offset, enemy_group, main):
-        print(self.images_upper)
         surface = pygame.Surface((32, 63))
         surface.set_colorkey((0, 0, 0))
         
@@ -66,7 +65,7 @@ class Projectile(pygame.sprite.Sprite):
 
     def update(self, screen, camera_offset, dt):
         self.position += self.movement * 4 * dt
-        if self.position.distance_to(self.target_position) < 2:
+        if self.position.distance_to(self.target_position) < 4:
             if self.attack_type == "normal":
                 self.enemy.health -= self.attack
             elif self.attack_type == "area_attack":

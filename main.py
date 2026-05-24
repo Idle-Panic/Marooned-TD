@@ -31,7 +31,9 @@ class Game:
         
         self.colors = {
         "dark_brown" : (35, 23, 18),
-        "gray" : (123, 123, 123)
+        "gray" : (123, 123, 123),
+        "green" : (88, 211, 50),
+        "red" : (224, 60, 40)
         }
         
         self.assets = {

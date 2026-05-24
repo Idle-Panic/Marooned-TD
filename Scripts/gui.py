@@ -16,6 +16,8 @@ class GUI:
 		"health" : load_image("gui/health.png"),
 		"towers_icon" : load_image("gui/towers_icon.png"),
 		"panel_icon1" : load_image("gui/panel_icon1.png"),
+		"panel_icon2" : load_image("gui/panel_icon2.png"),
+		"panel_icon3" : load_image("gui/panel_icon3.png"),
 		"sabre_button_up_left" : load_image("gui/sabre_button_up.png"),
 		"sabre_button_up_right" : pygame.transform.flip(load_image("gui/sabre_button_up.png"), True, False),
 		"sabre_button_down_left" : load_image("gui/sabre_button_down.png"),
@@ -32,13 +34,15 @@ class GUI:
 		"compass_button_down_right" : load_image("gui/compass_button_down.png"),
 		"compass_button_up_left" : pygame.transform.flip(load_image("gui/compass_button_up.png"), True, False),
 		"compass_button_down_left" : pygame.transform.flip(load_image("gui/compass_button_down.png"), True, False),
+		"doubloon_icon" : load_image("gui/doubloon_icon.png"),
+		"attack_icon" : load_image("gui/attack_icon.png"),
+		"range_icon" : load_image("gui/range_icon.png"),
+		"speed_icon" : load_image("gui/speed_icon.png"),
 		}
 		self.components = {"background" : Background(), "buttons" : Buttons(self), "blueprints": Blueprints(self), "icons" : Icons(self), "texts" : Texts(self),
 		"steering_wheel" : Steering_Wheel(self)}
 	
 	def render(self, screen):
-		screen.blit(self.components["background"].image, self.components["background"].position)
-		
 		if self.gui_mode == "build":
 			self.components["blueprints"].update(self.main.camera_offset)
 			if self.components["blueprints"].valid == True:
@@ -49,6 +53,8 @@ class GUI:
 				screen.blit(self.components["blueprints"].blueprints[self.viewing_tower]["image_red"], self.components["blueprints"].rect)
 				pygame.draw.circle(screen, (224, 60, 40), (self.components["blueprints"].rect.centerx, self.components["blueprints"].rect.centery + 2), 
 				self.main.tower_stats[self.viewing_tower]["range"], 2)
+		
+		screen.blit(self.components["background"].image, self.components["background"].position)
 		
 		for icon in self.components["icons"].icons:
 			if not icon["mode"] or icon["mode"] == self.gui_mode:
@@ -112,10 +118,10 @@ class Buttons:
 		self.buttons = [
 		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("sabre_button_up_right", (360-self.gui.background_width+100, 37), "stats"))),
 		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("sabre_button_up_left", (360-self.gui.background_width+36, 1), "build"))),
-		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("build_button_up", (360-self.gui.background_width+75, 56), "build"))),
+		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("build_button_up", (360-self.gui.background_width+75, 142), "build"))),
 		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("startwave_button_up", (26, 2), False))),
-		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("compass_button_up_right", (360-self.gui.background_width/2+40, 64), "build"))),
-		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("compass_button_up_left", (360-self.gui.background_width/2-40, 64), "build"))),
+		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("compass_button_up_right", (360-self.gui.background_width/2+40, 144), "build"))),
+		dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("compass_button_up_left", (360-self.gui.background_width/2-40, 144), "build"))),
 		]
 		
 	def get_button_rect(self, img, pos, mode):
@@ -163,6 +169,15 @@ class Icons:
 		dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon1", (360-self.gui.background_width+84, 94), "stats"))),
 		dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon1", (360-self.gui.background_width+84, 126), "stats"))),
 		dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon1", (360-self.gui.background_width+84, 158), "stats"))),
+		dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon2", (360-self.gui.background_width/2, 56), "build"))),
+		dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon3", (360-self.gui.background_width/2-34, 86), "build"))),
+		dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon3", (360-self.gui.background_width/2+34, 86), "build"))),
+		dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon3", (360-self.gui.background_width/2-34, 116), "build"))),
+		dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon3", (360-self.gui.background_width/2+34, 116), "build"))),
+		dict(zip(["image", "rect", "mode"], self.get_icon_rect("doubloon_icon", (360-self.gui.background_width/2-52, 89), "build"))),
+		dict(zip(["image", "rect", "mode"], self.get_icon_rect("attack_icon", (360-self.gui.background_width/2+16, 89), "build"))),
+		dict(zip(["image", "rect", "mode"], self.get_icon_rect("range_icon", (360-self.gui.background_width/2-52, 119), "build"))),
+		dict(zip(["image", "rect", "mode"], self.get_icon_rect("speed_icon", (360-self.gui.background_width/2+16, 119), "build"))),
 		]
 		
 	def get_icon_rect(self, img, pos, mode):
@@ -185,13 +200,27 @@ class Texts:
 		{"text" : "Build", "color" : self.gui.main.colors["gray"], "position" : (360-self.gui.background_width+118, 44), "mode" : "stats"},
 		{"text" : "Stats", "color" : self.gui.main.colors["gray"], "position" : (360-self.gui.background_width+16, 7), "mode" : "build"},
 		{"text" : "Build", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2, 14), "mode" : "build"},
+		{"text" : "coconut launcher", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2, 58), "mode" : "build"},
+		{"text" : "100", "color" : self.gui.main.colors["red"], "position" : (360-self.gui.background_width/2-18, 89), "mode" : "build"},
+		{"text" : "0", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2+46, 89), "mode" : "build"},
+		{"text" : "0", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2-18, 119), "mode" : "build"},
+		{"text" : "0", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2+46, 119), "mode" : "build"},
 		]
 		
 	def update(self):
+		self.texts[8]["text"] = self.gui.main.tower_stats[self.gui.viewing_tower]["type"].replace("_", " ")
+		self.texts[9]["text"] = str(self.gui.main.tower_stats[self.gui.viewing_tower]["price"])
+		self.texts[10]["text"] = str(self.gui.main.tower_stats[self.gui.viewing_tower]["attack"])
+		self.texts[11]["text"] = str(self.gui.main.tower_stats[self.gui.viewing_tower]["range"])
+		self.texts[12]["text"] = str(self.gui.main.tower_stats[self.gui.viewing_tower]["speed"])
 		self.coins = self.gui.main.coins
 		self.wave = self.gui.main.wave
 		self.health = self.gui.main.health
 		self.towers = self.gui.main.tower_amount
+		if self.gui.main.tower_stats[self.gui.viewing_tower]["price"] > self.coins:
+			self.texts[9]["color"] = self.gui.main.colors["red"]
+		else:
+			self.texts[9]["color"] = self.gui.main.colors["green"]
 		self.texts[1]["text"] = f"Coins : {self.coins}"
 		self.texts[2]["text"] = f"Wave : {self.wave}"
 		self.texts[3]["text"] = f"HP : {self.health}"
