@@ -56,6 +56,7 @@ class Enemy(pygame.sprite.Sprite):
         self.max_health = data["health"]
         self.health = data["health"]
         self.init_time = pygame.time.get_ticks()
+        self.distance_travelled = 0
         
         self.healthbar = Healthbar()
         main.render_group.add(self.healthbar)
@@ -84,6 +85,8 @@ class Enemy(pygame.sprite.Sprite):
             main.coins += int(self.max_health / 2)
         self.image = self.images[int((pygame.time.get_ticks() - self.init_time) / 200 * self.speed) % len(self.images)]
         self.rect = self.image.get_rect(center = self.position)
+        
+        self.distance_travelled = (pygame.time.get_ticks() - self.init_time) * self.speed
         
         self.healthbar.update(self.health, self.max_health, self.position, main)
         

@@ -162,10 +162,11 @@ class Game:
                     pygame.quit()
                     sys.exit()
                         
-                # DETERMINE PATH INDICES (DEVELOPMENT ONLY)
+                #DETERMINE PATH INDICES (DEVELOPMENT ONLY)
+                #if event.type == pygame.KEYDOWN:
                 #    if event.key in [pygame.K_SPACE, pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN]:
                 #        self.determine_path_index(event.key, pygame.mouse.get_pos())
-                
+            
             self.tower_amount = len(self.tower_group)
             
             self.gui.components["steering_wheel"].update(self.mouse_being_pressed, self.mouse_pos, self.camera_offset, self.dt)
@@ -176,8 +177,9 @@ class Game:
             self.ground_tilemap.render(self.screen, render_offset)
             self.path_tilemap.render(self.screen, render_offset)
             
-            self.tower_group.update(self.screen, render_offset, self.enemy_group, self)
             self.enemy_group.update(self.screen, render_offset, self.path, self, self.dt)
+            self.sorted_enemy_group = sorted(self.enemy_group.sprites(), key = lambda spr: spr.distance_travelled, reverse=True)
+            self.tower_group.update(self.screen, render_offset, self.sorted_enemy_group, self)
             
             self.render_group.draw(self.screen, render_offset)
             self.projectile_group.update(self.screen, render_offset, self.dt)
