@@ -161,11 +161,17 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                        
-                #DETERMINE PATH INDICES (DEVELOPMENT ONLY)
-                #if event.type == pygame.KEYDOWN:
-                #    if event.key in [pygame.K_SPACE, pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN]:
-                #        self.determine_path_index(event.key, pygame.mouse.get_pos())
+                
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_F11 and sys.platform != "emscripten":
+                        if self.flags == pygame.SCALED:
+                            self.flags = pygame.SCALED | pygame.FULLSCREEN
+                        else:
+                            self.flags = pygame.SCALED
+                        pygame.display.set_mode((360, 240), self.flags)
+                    #DETERMINE PATH INDICES (DEVELOPMENT ONLY)
+                    #if event.key in [pygame.K_SPACE, pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN]:
+                    #    self.determine_path_index(event.key, pygame.mouse.get_pos())
             
             self.tower_amount = len(self.tower_group)
             
