@@ -30,6 +30,7 @@ class GUI:
 		"cannon_blueprint_red" : load_image("towers/cannon/blueprint_red.png"),
 		"startwave_button_up" : load_image("gui/startwave_button_up.png"),
 		"startwave_button_down" : load_image("gui/startwave_button_down.png"),
+		"startwave_button_gray" : load_image("gui/startwave_button_gray.png"),
 		"compass_button_up_right" : load_image("gui/compass_button_up.png"),
 		"compass_button_down_right" : load_image("gui/compass_button_down.png"),
 		"compass_button_up_left" : pygame.transform.flip(load_image("gui/compass_button_up.png"), True, False),
@@ -68,7 +69,9 @@ class GUI:
 					
 		for button in self.components["buttons"].buttons:
 			if not button["mode"] or button["mode"] == self.gui_mode:
-				if button["being_pressed"] == False:
+				if button["image_up"] == self.images["startwave_button_up"] and self.main.wave_started == True:
+					screen.blit(self.images["startwave_button_gray"], button["rect"])
+				elif button["being_pressed"] == False:
 					screen.blit(button["image_up"], button["rect"])
 				else:
 					screen.blit(button["image_down"], button["rect"])
@@ -142,13 +145,14 @@ class Buttons:
 						button["being_pressed"] = False
 						if button["image_up"] == self.gui.images["sabre_button_up_right"]:
 							self.gui.gui_mode = "build"
-						if button["image_up"] == self.gui.images["sabre_button_up_left"] and button["mode"] == "build":
+						if button["image_up"] == self.gui.images["sabre_button_up_left"]:
 							self.gui.gui_mode = "stats"
-						if button["image_up"] == self.gui.images["startwave_button_up"] and button["mode"] == False:
+						if button["image_up"] == self.gui.images["startwave_button_up"]:
 							self.gui.main.wave_started = True
 						if button["image_up"] == self.gui.images["build_button_up"] and self.gui.gui_mode == "build":
 							if self.gui.components["blueprints"].valid == True:
 								self.gui.main.add_tower(self.gui.viewing_tower, (360 / 2 - self.gui.main.camera_offset[0], 240 / 2 - self.gui.main.camera_offset[1]))
+								
 						if button["image_up"] == self.gui.images["compass_button_up_right"] and self.gui.gui_mode == "build":
 							self.gui.viewing_tower = pygame.math.clamp(self.gui.viewing_tower + 1, 0, len(self.gui.main.tower_stats) - 1)
 						if button["image_up"] == self.gui.images["compass_button_up_left"] and self.gui.gui_mode == "build":

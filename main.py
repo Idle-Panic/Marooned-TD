@@ -33,7 +33,8 @@ class Game:
         "dark_brown" : (35, 23, 18),
         "gray" : (123, 123, 123),
         "green" : (88, 211, 50),
-        "red" : (224, 60, 40)
+        "red" : (224, 60, 40),
+        "dark_blue" : (13, 32, 48)
         }
         
         self.assets = {
@@ -116,7 +117,7 @@ class Game:
     def add_enemy(self, type):
         for i in self.enemy_stats:
             if type == i["type"]:
-                enemy = Enemy(self.enemy_stats[self.enemy_stats.index(i)])
+                enemy = Enemy(self.enemy_stats[self.enemy_stats.index(i)], self)
                 self.enemy_group.add(enemy)
                 self.render_group.add(enemy)
                 

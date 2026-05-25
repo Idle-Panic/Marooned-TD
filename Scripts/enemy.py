@@ -43,7 +43,7 @@ class Wave_Data:
             self.ticks_next_spawn = pygame.time.get_ticks() + 1000 * self.wave_pauses[self.wave][0]
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, data):
+    def __init__(self, data, main):
         super().__init__()
         self.START_LOCATION = (368, 112)
         self.images = self.get_imgs(data)
@@ -57,12 +57,12 @@ class Enemy(pygame.sprite.Sprite):
         self.health = data["health"]
         self.init_time = pygame.time.get_ticks()
         
+        self.healthbar = Healthbar()
+        main.render_group.add(self.healthbar)
+        
     def get_imgs(self, data):
         return load_images("enemies/" + data["type"])
-        
-    def rect(self, pos):
-        return self.image.get_rect(center = pos)
-        
+
     def update(self, screen, camera_offset, path, main, dt):
         distance = (self.get_sign(self.position[0] - path[self.path_index][0])**2 + self.get_sign(self.position[1] - path[self.path_index][1])**2)**0.5
         if distance != 0:
@@ -70,6 +70,7 @@ class Enemy(pygame.sprite.Sprite):
             self.position[1] -= self.get_sign(self.position[1] - path[self.path_index][1]) / distance * self.speed * dt
         elif main.health > 0:
             self.kill()
+            self.healthbar.kill()
             main.health -= self.health
         else:
             pass
@@ -79,9 +80,12 @@ class Enemy(pygame.sprite.Sprite):
                 self.path_index += 1
         if self.health <= 0:
             self.kill()
+            self.healthbar.kill()
             main.coins += int(self.max_health / 2)
         self.image = self.images[int((pygame.time.get_ticks() - self.init_time) / 200 * self.speed) % len(self.images)]
         self.rect = self.image.get_rect(center = self.position)
+        
+        self.healthbar.update(self.health, self.max_health, self.position, main)
         
     def get_sign(self, num):
         if num > 0:
@@ -89,3 +93,17 @@ class Enemy(pygame.sprite.Sprite):
         elif num < 0:
             return -1
         return 0
+        
+class Healthbar(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((32, 36))
+        self.image.set_colorkey((0, 0, 0))
+        self.rect = self.image.get_rect(midtop = (368, 112 - 20))
+        
+    def update(self, health, max_health, pos, main):
+        self.rect.centerx = int(pos[0])
+        self.rect.centery = int(pos[1]) - 2
+        pygame.draw.line(self.image, main.colors["dark_blue"], (0, 1), (32, 1), 4)
+        pygame.draw.line(self.image, main.colors["red"], (1, 1), (30, 1), 2)
+        pygame.draw.line(self.image, main.colors["green"], (1, 1), (health / max_health * 29 + 1 , 1), 2)

@@ -44,9 +44,6 @@ def process_font(text, color, position, screen):
     text_rendered = font.render(text, False, color)
     text_rect = text_rendered.get_rect(midtop = (position))
     screen.blit(text_rendered, text_rect)
-
-def animate(images, does_loop, frame_time):
-    pass
     
 class SortedGroup(pygame.sprite.Group):
     def __init__(self):
