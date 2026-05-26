@@ -33,6 +33,7 @@ class Tower(pygame.sprite.Sprite):
                         main.projectile_group.add(Projectile(self.type_dict, (self.rect.center[0], self.rect.center[1]), enemy, self.main))
                         self.last_time_fired = pygame.time.get_ticks()
                     break
+        
         self.image_upper = self.images_upper[pygame.math.clamp(int(
         (pygame.time.get_ticks() - self.last_time_fired) / 1000 * self.speed * len(self.images_upper)
         ), 0, len(self.images_upper) - 1)]
