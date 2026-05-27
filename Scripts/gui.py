@@ -113,10 +113,9 @@ class Blueprints:
         colliding_with_path = True
         colliding_with_tower = True
         colliding_with_props = True
-        colliding_with_water = False
+        colliding_with_water = True
         
-        if 0 < self.position[0] - camera_offset[0] < 720 and 0 < self.position[1] - camera_offset[1] < 720 and \
-        self.gui.main.path_mask.overlap_area(self.mask, (self.position[0] - 16 - camera_offset[0], self.position[1] + 15 - camera_offset[1])) == 0:
+        if self.gui.main.path_mask.overlap_area(self.mask, (self.position[0] - 16 - camera_offset[0], self.position[1] + 15 - camera_offset[1])) == 0:
             colliding_with_path = False
         if len(self.gui.main.tower_group) > 0:
             if not self.check_tower_collision(camera_offset):
@@ -131,6 +130,9 @@ class Blueprints:
             if prop_name == "palm":
                 if not self.check_palm_collision(camera_offset):
                     colliding_with_props = False
+                    
+        if self.is_on_land(camera_offset):
+            colliding_with_water = False
                 
         if not colliding_with_path  and not colliding_with_tower and not colliding_with_props and not colliding_with_water:
             self.valid = True
@@ -147,6 +149,14 @@ class Blueprints:
         for palm_rect in self.gui.main.prop_rects["palm"]:
             if pygame.Vector2((palm_rect.midbottom[0] + camera_offset[0], palm_rect.midbottom[1] + camera_offset[1] - 8))\
             .distance_to(pygame.Vector2(self.collision_rect.center)) < 22:
+                return True
+        return False
+        
+    def is_on_land(self, camera_offset):
+        blueprint_center = (self.position[0], self.position[1] + 30)
+        blueprint_tile_location = str(int((blueprint_center[0] - camera_offset[0]) / 32 + 1)) + ";" + str(int((blueprint_center[1] - camera_offset[1]) / 32 + 1))
+        if blueprint_tile_location in self.gui.main.ground_tilemap.tile_data:
+            if self.gui.main.ground_tilemap.tile_data[blueprint_tile_location]["type"] == "4":
                 return True
         return False
     
