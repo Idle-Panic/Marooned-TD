@@ -24,6 +24,8 @@ class Game:
         pygame.display.set_caption("Marooned TD")
         self.screen = pygame.display.set_mode((360, 240), self.flags)
         
+        self.state = "title"
+        
         self.render_group = SortedGroup()
         
         self.tile_size = 32
@@ -35,6 +37,14 @@ class Game:
         "green" : (88, 211, 50),
         "red" : (224, 60, 40),
         "dark_blue" : (13, 32, 48)
+        }
+        
+        self.sounds = {
+        "click" : load_audio("click.ogg", "sfx"),
+        "sword" : load_audio("sword.ogg", "sfx"),
+        "construction" : load_audio("construction.ogg", "sfx"),
+        "slingshot" : load_audio("slingshot.ogg", "sfx"),
+        "explosion" : load_audio("explosion.ogg", "sfx")
         }
         
         self.assets = {
@@ -79,9 +89,6 @@ class Game:
         self.path_tilemap = Tilemap(self, self.tile_size, 15, convert_tilemap("path_tiles.txt", self.tile_size, 15), "path_tiles", 0, False)
         self.path_mask = pygame.mask.from_surface(self.path_tilemap.surface)
         
-        load_audio("main_theme.ogg", "music")
-        pygame.mixer.music.play(-1, 0.0, 4000)
-        
         self.gui = GUI(self)
         self.wave_data = Wave_Data(self, "waves.txt")
         
@@ -113,6 +120,7 @@ class Game:
             self.render_group.add(tower)
             
             self.coins -= self.tower_stats[type]["price"]
+            self.sounds["construction"].play()
                 
     def add_enemy(self, type):
         for i in self.enemy_stats:
@@ -146,6 +154,11 @@ class Game:
                 self.clock.tick(60)
                 self.dt = 1
             
+            if self.state != "playing":
+                self.gui.gui_mode = self.state
+            elif self.state == "playing" and self.gui.gui_mode == "title":
+                self.gui.gui_mode = "stats"
+            
             self.mouse_being_pressed = False
             for i in pygame.mouse.get_pressed():
                 if i == True:
@@ -175,21 +188,21 @@ class Game:
             
             self.tower_amount = len(self.tower_group)
             
-            self.gui.components["steering_wheel"].update(self.mouse_being_pressed, self.mouse_pos, self.camera_offset, self.dt)
-            render_offset = [int(self.camera_offset[0]), int(self.camera_offset[1])]
-            
-            self.water_tilemap.sinewave_move()
-            self.water_tilemap.render(self.screen, render_offset)
-            self.ground_tilemap.render(self.screen, render_offset)
-            self.path_tilemap.render(self.screen, render_offset)
-            
-            self.enemy_group.update(self.screen, render_offset, self.path, self, self.dt)
-            self.sorted_enemy_group = sorted(self.enemy_group.sprites(), key = lambda spr: spr.distance_travelled, reverse=True)
-            self.tower_group.update(self.screen, render_offset, self.sorted_enemy_group, self)
-            
-            self.render_group.draw(self.screen, render_offset)
-            self.projectile_group.update(self.screen, render_offset, self.dt)
-            self.area_attack_group.update(self.screen, render_offset, self.dt)
+            if self.state == "playing":
+                self.gui.components["steering_wheel"].update(self.mouse_being_pressed, self.mouse_pos, self.camera_offset, self.dt)
+                render_offset = [int(self.camera_offset[0]), int(self.camera_offset[1])]
+                self.water_tilemap.sinewave_move()
+                self.water_tilemap.render(self.screen, render_offset)
+                self.ground_tilemap.render(self.screen, render_offset)
+                self.path_tilemap.render(self.screen, render_offset)
+                
+                self.enemy_group.update(self.screen, render_offset, self.path, self, self.dt)
+                self.sorted_enemy_group = sorted(self.enemy_group.sprites(), key = lambda spr: spr.distance_travelled, reverse=True)
+                self.tower_group.update(self.screen, render_offset, self.sorted_enemy_group, self)
+                
+                self.render_group.draw(self.screen, render_offset)
+                self.projectile_group.update(self.screen, render_offset, self.dt)
+                self.area_attack_group.update(self.screen, render_offset, self.dt)
             
             self.gui.render(self.screen)
             

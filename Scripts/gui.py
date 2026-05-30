@@ -1,5 +1,5 @@
 import pygame
-from Scripts.utilities import load_image, process_font
+from Scripts.utilities import load_image, process_font, load_audio
 from Scripts.tower import Tower
 
 class GUI:
@@ -10,6 +10,8 @@ class GUI:
         self.background_width = 150
         self.viewing_tower = 0
         self.images = {
+        "title_background" : load_image("gui/title_background.png"),
+        "title" : load_image("gui/title.png"),
         "driftwood_icon" : load_image("gui/driftwood_icon.png"),
         "doubloon" : load_image("gui/doubloon.png"),
         "wave" : load_image("gui/wave.png"),
@@ -39,50 +41,64 @@ class GUI:
         "attack_icon" : load_image("gui/attack_icon.png"),
         "range_icon" : load_image("gui/range_icon.png"),
         "speed_icon" : load_image("gui/speed_icon.png"),
+        "title_start_button_up" : load_image("gui/title_start_button_up.png"),
+        "title_start_button_down" : load_image("gui/title_start_button_down.png"),
         }
         self.components = {"background" : Background(), "buttons" : Buttons(self), "blueprints": Blueprints(self), "icons" : Icons(self), "texts" : Texts(self),
         "steering_wheel" : Steering_Wheel(self)}
     
     def render(self, screen):
-        if self.gui_mode == "build":
-            self.components["blueprints"].update(self.main.camera_offset)
-            if self.components["blueprints"].valid == True:
-                screen.blit(self.components["blueprints"].blueprints[self.viewing_tower]["image_green"], self.components["blueprints"].rect)
-                pygame.draw.circle(screen, (140, 214, 18), (self.components["blueprints"].rect.centerx, self.components["blueprints"].rect.centery + 2),
-                self.main.tower_stats[self.viewing_tower]["range"], 2)
-            else:
-                screen.blit(self.components["blueprints"].blueprints[self.viewing_tower]["image_red"], self.components["blueprints"].rect)
-                pygame.draw.circle(screen, (224, 60, 40), (self.components["blueprints"].rect.centerx, self.components["blueprints"].rect.centery + 2), 
-                self.main.tower_stats[self.viewing_tower]["range"], 2)
-        
-        screen.blit(self.components["background"].image, self.components["background"].position)
-        
-        for icon in self.components["icons"].icons:
-            if not icon["mode"] or icon["mode"] == self.gui_mode:
-                screen.blit(icon["image"], icon["rect"])
-        
-        self.components["texts"].update()
-        for text in self.components["texts"].texts:
-            if text["mode"] == self.gui_mode:
-                if text["color"] != (123, 123, 123):
-                    process_font(text["text"], text["color"], text["position"], self.main.screen)   
+        if self.main.state == "title":
+            screen.blit(self.images["title_background"], (0, 0 - pygame.mouse.get_pos()[1]**0.7))
+            screen.blit(self.images["title"], (0, 0))
+            
+        elif self.main.state == "playing":
+            if self.gui_mode == "build":
+                self.components["blueprints"].update(self.main.camera_offset)
+                if self.components["blueprints"].valid == True:
+                    screen.blit(self.components["blueprints"].blueprints[self.viewing_tower]["image_green"], self.components["blueprints"].rect)
+                    pygame.draw.circle(screen, (140, 214, 18), (self.components["blueprints"].rect.centerx, self.components["blueprints"].rect.centery + 2),
+                    self.main.tower_stats[self.viewing_tower]["range"], 2)
+                else:
+                    screen.blit(self.components["blueprints"].blueprints[self.viewing_tower]["image_red"], self.components["blueprints"].rect)
+                    pygame.draw.circle(screen, (224, 60, 40), (self.components["blueprints"].rect.centerx, self.components["blueprints"].rect.centery + 2), 
+                    self.main.tower_stats[self.viewing_tower]["range"], 2)
+            
+            screen.blit(self.components["background"].image, self.components["background"].position)
+            
+            for icon in self.components["icons"].icons:
+                if not icon["mode"] or icon["mode"] == self.gui_mode:
+                    screen.blit(icon["image"], icon["rect"])
+                    
+            self.components["texts"].update()
+            for text in self.components["texts"].texts:
+                if text["mode"] == self.gui_mode:
+                    if text["color"] != (123, 123, 123):
+                        process_font(text["text"], text["color"], text["position"], self.main.screen) 
                     
         for button in self.components["buttons"].buttons:
-            if not button["mode"] or button["mode"] == self.gui_mode:
+            if (not button["mode"] and self.main.state == "playing") or button["mode"] == self.gui_mode:
                 if button["image_up"] == self.images["startwave_button_up"] and self.main.wave_started == True:
                     screen.blit(self.images["startwave_button_gray"], button["rect"])
                 elif button["being_pressed"] == False:
                     screen.blit(button["image_up"], button["rect"])
                 else:
                     screen.blit(button["image_down"], button["rect"])
-                    
-        for text in self.components["texts"].texts:
-            if text["mode"] == self.gui_mode:
-                if text["color"] == (123, 123, 123):
-                    process_font(text["text"], text["color"], text["position"], self.main.screen)   
-        screen.blit(self.components["steering_wheel"].rotated_image, 
-        self.components["steering_wheel"].rotated_image.get_rect(center = self.components["steering_wheel"].position))
+            
+        if self.main.state == "playing":
+            for text in self.components["texts"].texts:
+                if text["mode"] == self.gui_mode:
+                    if text["color"] == (123, 123, 123):
+                        process_font(text["text"], text["color"], text["position"], self.main.screen)   
+            screen.blit(self.components["steering_wheel"].rotated_image, 
+            self.components["steering_wheel"].rotated_image.get_rect(center = self.components["steering_wheel"].position))
+        
+    def fade_out_transition(screen, start_ticks):
+        pass
 
+    def fade_in_transition(screen, start_ticks):
+        pass
+        
 class Background:
     def __init__(self):
         self.image = load_image("gui/background.png")
@@ -170,6 +186,7 @@ class Buttons:
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("startwave_button_up", (26, 2), False))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("compass_button_up_right", (360-self.gui.background_width/2+40, 144), "build"))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("compass_button_up_left", (360-self.gui.background_width/2-40, 144), "build"))),
+        dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("title_start_button_up", (180, 136), "title"))),
         ]
         
     def get_button_rect(self, img, pos, mode):
@@ -178,7 +195,11 @@ class Buttons:
         return(img_up, img_down, img_up.get_rect(midtop = pos), mode, False)
         
     def check_collisions(self, mouse_being_pressed, mouse_pos):
+        valid_buttons = []
         for button in self.buttons:
+            if button["mode"] == self.gui.gui_mode or (not button["mode"] and self.gui.main.state == "playing") or button["mode"] == self.gui.main.state:
+                valid_buttons.append(button)
+        for button in valid_buttons:
             if mouse_being_pressed:
                 if button["rect"].collidepoint(mouse_pos):
                     button["being_pressed"] = True
@@ -188,15 +209,23 @@ class Buttons:
                 if button["rect"].collidepoint(mouse_pos):
                     if button["being_pressed"] == True:
                         button["being_pressed"] = False
+                        if button["image_up"] != self.gui.images["startwave_button_up"]:
+                            self.gui.main.sounds["click"].play()
+                        else:
+                            self.gui.main.sounds["sword"].play()
                         if button["image_up"] == self.gui.images["sabre_button_up_right"]:
                             self.gui.gui_mode = "build"
                         if button["image_up"] == self.gui.images["sabre_button_up_left"]:
                             self.gui.gui_mode = "stats"
                         if button["image_up"] == self.gui.images["startwave_button_up"]:
                             self.gui.main.wave_started = True
-                        if button["image_up"] == self.gui.images["build_button_up"] and self.gui.gui_mode == "build":
+                        if button["image_up"] == self.gui.images["build_button_up"]:
                             if self.gui.components["blueprints"].valid == True:
                                 self.gui.main.add_tower(self.gui.viewing_tower, (360 / 2 - self.gui.main.camera_offset[0], 240 / 2 - self.gui.main.camera_offset[1]))
+                        if button["image_up"] == self.gui.images["title_start_button_up"]:
+                            self.gui.main.state = "playing"
+                            load_audio("main_theme.ogg", "music")
+                            pygame.mixer.music.play(-1, 0.0, 4000)
                                 
                         if button["image_up"] == self.gui.images["compass_button_up_right"] and self.gui.gui_mode == "build":
                             self.gui.viewing_tower = pygame.math.clamp(self.gui.viewing_tower + 1, 0, len(self.gui.main.tower_stats) - 1)

@@ -32,6 +32,8 @@ class Tower(pygame.sprite.Sprite):
                     if pygame.time.get_ticks() >= self.last_time_fired + 1000 * self.speed:
                         main.projectile_group.add(Projectile(self.type_dict, (self.rect.center[0], self.rect.center[1]), enemy, self.main))
                         self.last_time_fired = pygame.time.get_ticks()
+                        if self.type_dict["type"] == "coconut_launcher":
+                            self.main.sounds["slingshot"].play()
                     break
         
         self.image_upper = self.images_upper[pygame.math.clamp(int(
@@ -71,6 +73,7 @@ class Projectile(pygame.sprite.Sprite):
                 self.enemy.health -= self.attack
             elif self.attack_type == "area_attack":
                 self.main.area_attack_group.add(Area_Attack(self.type_dict, self.position, self.main))
+                self.main.sounds["explosion"].play()
             self.kill()
         screen.blit(self.image, self.rect((self.position[0] + camera_offset[0], self.position[1] + camera_offset[1])))
         
