@@ -51,6 +51,7 @@ class Enemy(pygame.sprite.Sprite):
         self.position = list(self.START_LOCATION)
         self.path_index = 1
         self.rect = self.image.get_rect()
+        self.type = data["type"]
         
         self.speed = data["speed"]
         self.max_health = data["health"]

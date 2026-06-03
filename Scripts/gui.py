@@ -43,9 +43,17 @@ class GUI:
         "speed_icon" : load_image("gui/speed_icon.png"),
         "title_start_button_up" : load_image("gui/title_start_button_up.png"),
         "title_start_button_down" : load_image("gui/title_start_button_down.png"),
+        "hp_icon" : load_image("gui/hp_icon.png"),
+        "empty_32x32" : pygame.Surface((32, 64)),
         }
         self.components = {"background" : Background(), "buttons" : Buttons(self), "blueprints": Blueprints(self), "icons" : Icons(self), "texts" : Texts(self),
         "steering_wheel" : Steering_Wheel(self)}
+        
+        self.tower_displaying = False
+        self.enemy_displaying = False
+        
+        self.components["icons"].icons[23]["image"].set_colorkey((0, 0, 0))
+        self.components["icons"].icons[24]["image"].set_colorkey((0, 0, 0))
     
     def render(self, screen):
         if self.main.state == "title":
@@ -66,18 +74,34 @@ class GUI:
             
             screen.blit(self.components["background"].image, self.components["background"].position)
             
+            self.components["icons"].icons[23]["image"].fill((0, 0, 0))
+            self.components["icons"].icons[24]["image"].fill((0, 0, 0))
+            
+            if self.tower_displaying:
+                self.components["icons"].icons[23]["image"].blit(self.tower_displaying.image, (0, -16))
+            if self.enemy_displaying:
+                self.components["icons"].icons[24]["image"].blit(self.enemy_displaying.image)
+            
             for icon in self.components["icons"].icons:
                 if not icon["mode"] or icon["mode"] == self.gui_mode:
                     screen.blit(icon["image"], icon["rect"])
+                elif type(icon["mode"]) == list:
+                    for mode in icon["mode"]:
+                        if mode == self.gui_mode:
+                            screen.blit(icon["image"], icon["rect"])
                     
             self.components["texts"].update()
             for text in self.components["texts"].texts:
                 if text["mode"] == self.gui_mode:
                     if text["color"] != (123, 123, 123):
-                        process_font(text["text"], text["color"], text["position"], self.main.screen) 
+                        process_font(text["text"], text["color"], text["position"], self.main.screen)
+                elif type(text["mode"]) == list:
+                    for mode in text["mode"]:
+                        if mode == self.gui_mode and text["color"] != (123, 123, 123):
+                            process_font(text["text"], text["color"], text["position"], self.main.screen)
                     
         for button in self.components["buttons"].buttons:
-            if (not button["mode"] and self.main.state == "playing") or button["mode"] == self.gui_mode:
+            if button in self.components["buttons"].valid_buttons:
                 if button["image_up"] == self.images["startwave_button_up"] and self.main.wave_started == True:
                     screen.blit(self.images["startwave_button_gray"], button["rect"])
                 elif button["being_pressed"] == False:
@@ -89,15 +113,13 @@ class GUI:
             for text in self.components["texts"].texts:
                 if text["mode"] == self.gui_mode:
                     if text["color"] == (123, 123, 123):
-                        process_font(text["text"], text["color"], text["position"], self.main.screen)   
+                        process_font(text["text"], text["color"], text["position"], self.main.screen)
+                elif type(text["mode"]) == list:
+                    for mode in text["mode"]:
+                        if mode == self.gui_mode and text["color"] == (123, 123, 123):
+                            process_font(text["text"], text["color"], text["position"], self.main.screen)
             screen.blit(self.components["steering_wheel"].rotated_image, 
             self.components["steering_wheel"].rotated_image.get_rect(center = self.components["steering_wheel"].position))
-        
-    def fade_out_transition(screen, start_ticks):
-        pass
-
-    def fade_in_transition(screen, start_ticks):
-        pass
         
 class Background:
     def __init__(self):
@@ -143,6 +165,9 @@ class Blueprints:
             if prop_name == "cave":
                 if self.gui.main.prop_rects[prop_name][0].colliderect(self.collision_rect.move((- camera_offset[0], - camera_offset[1]))):
                     break
+            if prop_name == "camp":
+                if self.gui.main.prop_rects[prop_name][0].colliderect(self.collision_rect.move((- camera_offset[0], - camera_offset[1]))):
+                    break
             if prop_name == "palm":
                 if not self.check_palm_collision(camera_offset):
                     colliding_with_props = False
@@ -181,13 +206,15 @@ class Buttons:
         self.gui = gui
         self.buttons = [
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("sabre_button_up_right", (360-self.gui.background_width+100, 37), "stats"))),
-        dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("sabre_button_up_left", (360-self.gui.background_width+36, 1), "build"))),
+        dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("sabre_button_up_left", (360-self.gui.background_width+36, 1),
+        ["build", "viewing_tower", "viewing_enemy"]))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("build_button_up", (360-self.gui.background_width+75, 142), "build"))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("startwave_button_up", (26, 2), False))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("compass_button_up_right", (360-self.gui.background_width/2+40, 144), "build"))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("compass_button_up_left", (360-self.gui.background_width/2-40, 144), "build"))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("title_start_button_up", (180, 136), "title"))),
         ]
+        self.valid_buttons = []
         
     def get_button_rect(self, img, pos, mode):
         img_up = self.gui.images[img]
@@ -195,11 +222,17 @@ class Buttons:
         return(img_up, img_down, img_up.get_rect(midtop = pos), mode, False)
         
     def check_collisions(self, mouse_being_pressed, mouse_pos):
-        valid_buttons = []
+        self.valid_buttons = []
         for button in self.buttons:
             if button["mode"] == self.gui.gui_mode or (not button["mode"] and self.gui.main.state == "playing") or button["mode"] == self.gui.main.state:
-                valid_buttons.append(button)
-        for button in valid_buttons:
+                self.valid_buttons.append(button)
+            elif type(button["mode"]) == list:
+                for mode in button["mode"]:
+                    if mode == self.gui.gui_mode or mode == self.gui.main.state:
+                        self.valid_buttons.append(button)
+                        break
+                        
+        for button in self.valid_buttons:
             if mouse_being_pressed:
                 if button["rect"].collidepoint(mouse_pos):
                     button["being_pressed"] = True
@@ -247,15 +280,22 @@ class Icons:
         dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon1", (360-self.gui.background_width+84, 94), "stats"))),
         dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon1", (360-self.gui.background_width+84, 126), "stats"))),
         dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon1", (360-self.gui.background_width+84, 158), "stats"))),
-        dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon2", (360-self.gui.background_width/2, 56), "build"))),
-        dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon3", (360-self.gui.background_width/2-34, 86), "build"))),
+        dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon2", (360-self.gui.background_width/2, 56), ["build", "viewing_tower", "viewing_enemy"]))),
+        dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon3", (360-self.gui.background_width/2-34, 86), ["build", "viewing_tower", "viewing_enemy"]))),
         dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon3", (360-self.gui.background_width/2+34, 86), "build"))),
-        dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon3", (360-self.gui.background_width/2-34, 116), "build"))),
+        dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon3", (360-self.gui.background_width/2-34, 116), ["build", "viewing_tower", "viewing_enemy"]))),
         dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon3", (360-self.gui.background_width/2+34, 116), "build"))),
         dict(zip(["image", "rect", "mode"], self.get_icon_rect("doubloon_icon", (360-self.gui.background_width/2-52, 89), "build"))),
         dict(zip(["image", "rect", "mode"], self.get_icon_rect("attack_icon", (360-self.gui.background_width/2+16, 89), "build"))),
-        dict(zip(["image", "rect", "mode"], self.get_icon_rect("range_icon", (360-self.gui.background_width/2-52, 119), "build"))),
+        dict(zip(["image", "rect", "mode"], self.get_icon_rect("range_icon", (360-self.gui.background_width/2-52, 119), ["build", "viewing_tower"]))),
         dict(zip(["image", "rect", "mode"], self.get_icon_rect("speed_icon", (360-self.gui.background_width/2+16, 119), "build"))),
+        dict(zip(["image", "rect", "mode"], self.get_icon_rect("panel_icon3", (360-self.gui.background_width/2-34, 146), "viewing_tower"))),
+        dict(zip(["image", "rect", "mode"], self.get_icon_rect("attack_icon", (360-self.gui.background_width/2-52, 89), "viewing_tower"))),
+        dict(zip(["image", "rect", "mode"], self.get_icon_rect("speed_icon", (360-self.gui.background_width/2-52, 149), "viewing_tower"))),
+        dict(zip(["image", "rect", "mode"], self.get_icon_rect("hp_icon", (360-self.gui.background_width/2-52, 89), "viewing_enemy"))),
+        dict(zip(["image", "rect", "mode"], self.get_icon_rect("speed_icon", (360-self.gui.background_width/2-52, 119), "viewing_enemy"))),
+        dict(zip(["image", "rect", "mode"], self.get_icon_rect("empty_32x32", (360-self.gui.background_width/2+32, 100), "viewing_tower"))),
+        dict(zip(["image", "rect", "mode"], self.get_icon_rect("empty_32x32", (360-self.gui.background_width/2+32, 100), "viewing_enemy"))),
         ]
         
     def get_icon_rect(self, img, pos, mode):
@@ -276,13 +316,22 @@ class Texts:
         {"text" : f"HP : {self.health}", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2+8, 132), "mode" : "stats"},
         {"text" : f"Towers : {self.towers}", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2+8, 163), "mode" : "stats"},
         {"text" : "Build", "color" : self.gui.main.colors["gray"], "position" : (360-self.gui.background_width+118, 44), "mode" : "stats"},
-        {"text" : "Stats", "color" : self.gui.main.colors["gray"], "position" : (360-self.gui.background_width+16, 7), "mode" : "build"},
+        {"text" : "Stats", "color" : self.gui.main.colors["gray"], "position" : (360-self.gui.background_width+16, 7), "mode" : ["build", "viewing_tower", "viewing_enemy"]},
         {"text" : "Build", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2, 14), "mode" : "build"},
         {"text" : "coconut launcher", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2, 58), "mode" : "build"},
         {"text" : "100", "color" : self.gui.main.colors["red"], "position" : (360-self.gui.background_width/2-18, 89), "mode" : "build"},
         {"text" : "0", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2+46, 89), "mode" : "build"},
         {"text" : "0", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2-18, 119), "mode" : "build"},
         {"text" : "0", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2+46, 119), "mode" : "build"},
+        {"text" : "Tower", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2, 14), "mode" : "viewing_tower"},
+        {"text" : "Enemy", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2, 14), "mode" : "viewing_enemy"},
+        {"text" : "coconut launcher", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2, 58), "mode" : "viewing_tower"},
+        {"text" : "0", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2-18, 89), "mode" : "viewing_tower"},
+        {"text" : "0", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2-18, 119), "mode" : "viewing_tower"},
+        {"text" : "0", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2-18, 149), "mode" : "viewing_tower"},
+        {"text" : "crab", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2, 58), "mode" : "viewing_enemy"},
+        {"text" : "0", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2-18, 89), "mode" : "viewing_enemy"},
+        {"text" : "0", "color" : self.gui.main.colors["dark_brown"], "position" : (360-self.gui.background_width/2-18, 119), "mode" : "viewing_enemy"},
         ]
         
     def update(self):
@@ -291,6 +340,16 @@ class Texts:
         self.texts[10]["text"] = str(self.gui.main.tower_stats[self.gui.viewing_tower]["attack"])
         self.texts[11]["text"] = str(self.gui.main.tower_stats[self.gui.viewing_tower]["range"])
         self.texts[12]["text"] = str(self.gui.main.tower_stats[self.gui.viewing_tower]["speed"])
+        if self.gui.tower_displaying:
+            self.texts[15]["text"] = self.gui.tower_displaying.type_dict["type"].replace("_", " ")
+            self.texts[16]["text"] = str(self.gui.tower_displaying.type_dict["attack"])
+            self.texts[17]["text"] = str(self.gui.tower_displaying.type_dict["range"])
+            self.texts[18]["text"] = str(self.gui.tower_displaying.type_dict["speed"])
+        if self.gui.enemy_displaying:
+            self.texts[19]["text"] = self.gui.enemy_displaying.type.replace("_", " ")
+            self.texts[20]["text"] = str(self.gui.enemy_displaying.health) + "/" + str(self.gui.enemy_displaying.max_health)
+            self.texts[21]["text"] = str(self.gui.enemy_displaying.speed)
+        
         self.coins = self.gui.main.coins
         self.wave = self.gui.main.wave
         self.health = self.gui.main.health

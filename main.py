@@ -55,11 +55,13 @@ class Game:
         
         self.prop_images = {
         "cave" : load_image("props/cave.png"),
-        "palm" : load_image("props/palm.png")
+        "palm" : load_image("props/palm.png"),
+        "camp" : load_image("props/camp.png"),
         }
 
         self.prop_rects = {
         "cave" : (self.img_to_rect("cave", (368, 128)),),
+        "camp" : (self.img_to_rect("camp", (96, 162)),),
         "palm" : (self.img_to_rect("palm", (160, 124)), self.img_to_rect("palm", (284, 94)), self.img_to_rect("palm", (414, 160)), self.img_to_rect("palm", (388, 278)),
         self.img_to_rect("palm", (254, 394)), self.img_to_rect("palm", (64, 320)),),
         }
@@ -146,6 +148,28 @@ class Game:
             self.path.append((int((position[0] - self.camera_offset[0]) - (position[0] - self.camera_offset[0]) % self.tile_size) + 16, 
             int((position[1] - self.camera_offset[1]) - (position[1] - self.camera_offset[1]) % self.tile_size) + 16))
             
+    def check_mouse_collisions(self, mouse_being_pressed):
+        if self.mouse_pos[0] > 210:
+            return None
+        if self.gui.components["steering_wheel"].being_held == True:
+            return None
+            
+        self.gui.tower_displaying = None
+        self.gui.enemy_displaying = None
+        
+        for tower in self.tower_group:
+            if tower.image_lower.get_rect(center = tower.position).move((0, 16)) \
+            .collidepoint(self.mouse_pos[0] - self.camera_offset[0], self.mouse_pos[1] - self.camera_offset[1]):
+                self.gui.gui_mode = "viewing_tower"
+                self.gui.tower_displaying = tower
+                return True
+        for enemy in self.enemy_group:
+            if enemy.rect.collidepoint(self.mouse_pos[0] - self.camera_offset[0], self.mouse_pos[1] - self.camera_offset[1]):
+                self.gui.gui_mode = "viewing_enemy"
+                self.gui.enemy_displaying = enemy
+                return True
+        return False
+    
     async def main(self):
         while True:
             if sys.platform == "emscripten":
@@ -166,7 +190,14 @@ class Game:
             if self.mouse_being_pressed:
                 self.mouse_pos = pygame.mouse.get_pos()
             
+            if self.state == "playing":
+                self.gui.components["steering_wheel"].update(self.mouse_being_pressed, self.mouse_pos, self.camera_offset, self.dt)
+            
             self.gui.components["buttons"].check_collisions(self.mouse_being_pressed, self.mouse_pos)
+            if self.mouse_being_pressed:
+                if self.check_mouse_collisions(self.mouse_being_pressed) == False:
+                    if self.gui.gui_mode in ["viewing_enemy", "viewing_tower"]:
+                        self.gui.gui_mode = "stats"
             
             self.wave_data.check_and_add(self.wave, self.wave_started)
             
@@ -189,7 +220,6 @@ class Game:
             self.tower_amount = len(self.tower_group)
             
             if self.state == "playing":
-                self.gui.components["steering_wheel"].update(self.mouse_being_pressed, self.mouse_pos, self.camera_offset, self.dt)
                 render_offset = [int(self.camera_offset[0]), int(self.camera_offset[1])]
                 self.water_tilemap.sinewave_move()
                 self.water_tilemap.render(self.screen, render_offset)
@@ -205,7 +235,7 @@ class Game:
                 self.area_attack_group.update(self.screen, render_offset, self.dt)
             
             self.gui.render(self.screen)
-            
+
             pygame.display.update()
             
             await asyncio.sleep(0)

@@ -39,7 +39,7 @@ def convert_tilemap(file, tile_size, tile_diameter):
 
 def process_font(text, color, position, screen):
     font = font2
-    if (text == "Stats" or text == "Build") and color != (123, 123, 123):
+    if text in ["Stats", "Build", "Tower", "Enemy"] and color != (123, 123, 123):
         font = font1
     text_rendered = font.render(text, False, color)
     text_rect = text_rendered.get_rect(midtop = (position))
