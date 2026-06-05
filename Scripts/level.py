@@ -20,9 +20,9 @@ class Tilemap:
                 (self.tile_data[str(x+1) + ";" + str(y+1)]["position"][0] + self.native_offset,
                 self.tile_data[str(x+1) + ";" + str(y+1)]["position"][1] + self.native_offset))
         
-    def sinewave_move(self):
-        self.extra_offset[0] = math.sin(pygame.time.get_ticks() / 2000) * self.tile_size
-        self.extra_offset[1] = pygame.time.get_ticks() / 2000 * self.tile_size % 64
+    def sinewave_move(self, gamespeed):
+        self.extra_offset[0] = math.sin(pygame.time.get_ticks() / 2000 * gamespeed) * self.tile_size
+        self.extra_offset[1] = pygame.time.get_ticks() / 2000 * gamespeed * self.tile_size % 64
     
     def render(self, screen, camera_offset):
         if self.camera_independence == False:

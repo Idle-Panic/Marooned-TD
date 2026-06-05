@@ -45,6 +45,12 @@ class GUI:
         "title_start_button_down" : load_image("gui/title_start_button_down.png"),
         "hp_icon" : load_image("gui/hp_icon.png"),
         "empty_32x32" : pygame.Surface((32, 64)),
+        "gamespeed_button_1x_up" : load_image("gui/gamespeed_button_1x_up.png"),
+        "gamespeed_button_2x_up" : load_image("gui/gamespeed_button_2x_up.png"),
+        "gamespeed_button_3x_up" : load_image("gui/gamespeed_button_3x_up.png"),
+        "gamespeed_button_1x_down" : load_image("gui/gamespeed_button_1x_down.png"),
+        "gamespeed_button_2x_down" : load_image("gui/gamespeed_button_2x_down.png"),
+        "gamespeed_button_3x_down" : load_image("gui/gamespeed_button_3x_down.png"),
         }
         self.components = {"background" : Background(), "buttons" : Buttons(self), "blueprints": Blueprints(self), "icons" : Icons(self), "texts" : Texts(self),
         "steering_wheel" : Steering_Wheel(self)}
@@ -213,6 +219,9 @@ class Buttons:
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("compass_button_up_right", (360-self.gui.background_width/2+40, 144), "build"))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("compass_button_up_left", (360-self.gui.background_width/2-40, 144), "build"))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("title_start_button_up", (180, 136), "title"))),
+        dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("gamespeed_button_1x_up", (360-self.gui.background_width/2-40, 200), False))),
+        dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("gamespeed_button_2x_up", (360-self.gui.background_width/2-2, 200), False))),
+        dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("gamespeed_button_3x_up", (360-self.gui.background_width/2+40, 200), False))),
         ]
         self.valid_buttons = []
         
@@ -250,6 +259,12 @@ class Buttons:
                             self.gui.gui_mode = "build"
                         if button["image_up"] == self.gui.images["sabre_button_up_left"]:
                             self.gui.gui_mode = "stats"
+                        if button["image_up"] == self.gui.images["gamespeed_button_1x_up"]:
+                            self.gui.main.gamespeed = 1
+                        if button["image_up"] == self.gui.images["gamespeed_button_2x_up"]:
+                            self.gui.main.gamespeed = 2
+                        if button["image_up"] == self.gui.images["gamespeed_button_3x_up"]:
+                            self.gui.main.gamespeed = 3
                         if button["image_up"] == self.gui.images["startwave_button_up"]:
                             self.gui.main.wave_started = True
                         if button["image_up"] == self.gui.images["build_button_up"]:

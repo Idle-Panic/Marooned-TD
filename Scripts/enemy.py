@@ -24,15 +24,18 @@ class Wave_Data:
         
         self.ticks_last_spawned = 0
         self.ticks_next_spawn = 0
+        self.time_sped_up_last = 0
         
-    def check_and_add(self, wave, wave_started):
+    def check_and_add(self, wave, wave_started, time_sped_up):
         self.wave = wave - 1
         self.wave_started = wave_started
         if wave_started and self.wave_started:
             if self.wave_index != len(self.wave_enemies[self.wave]):
-                if pygame.time.get_ticks() >= self.ticks_next_spawn:
+                if pygame.time.get_ticks() + (time_sped_up - self.time_sped_up_last) >= self.ticks_next_spawn:
                     self.main.add_enemy(self.wave_enemies[self.wave][self.wave_index])
+                    self.ticks_last_spawned = pygame.time.get_ticks()
                     self.ticks_next_spawn = pygame.time.get_ticks() + 1000 * self.wave_pauses[self.wave][self.wave_index]
+                    self.time_sped_up_last = time_sped_up
                     self.wave_index += 1
             elif self.main.wave < self.wave_amount:
                 self.main.wave_started = False
@@ -65,27 +68,30 @@ class Enemy(pygame.sprite.Sprite):
     def get_imgs(self, data):
         return load_images("enemies/" + data["type"])
 
-    def update(self, screen, camera_offset, path, main, dt):
-        distance = (self.get_sign(self.position[0] - path[self.path_index][0])**2 + self.get_sign(self.position[1] - path[self.path_index][1])**2)**0.5
-        if distance != 0:
-            self.position[0] -= self.get_sign(self.position[0] - path[self.path_index][0]) / distance * self.speed * dt
-            self.position[1] -= self.get_sign(self.position[1] - path[self.path_index][1]) / distance * self.speed * dt
-        elif main.health > 0:
-            self.kill()
-            self.healthbar.kill()
-            main.health -= self.health
-        else:
-            pass
-        if (round(self.position[0]), round(self.position[1])) == path[self.path_index]:
-            self.position = [path[self.path_index][0], path[self.path_index][1]]
-            if self.path_index + 1 != len(path):
-                self.path_index += 1
-        if self.health <= 0:
-            self.kill()
-            self.healthbar.kill()
-            main.coins += int(self.max_health / 2)
-        self.image = self.images[int((pygame.time.get_ticks() - self.init_time) / 200 * self.speed) % len(self.images)]
-        self.rect = self.image.get_rect(center = self.position)
+    def update(self, screen, camera_offset, path, main, dt, gamespeed):
+        for i in range(gamespeed):
+            distance = (self.get_sign(self.position[0] - path[self.path_index][0])**2 + self.get_sign(self.position[1] - path[self.path_index][1])**2)**0.5
+            if distance != 0:
+                self.position[0] -= self.get_sign(self.position[0] - path[self.path_index][0]) / distance * self.speed * dt
+                self.position[1] -= self.get_sign(self.position[1] - path[self.path_index][1]) / distance * self.speed * dt
+            elif main.health > 0:
+                self.kill()
+                self.healthbar.kill()
+                main.health -= self.health
+                break
+            else:
+                pass
+            if (round(self.position[0]), round(self.position[1])) == path[self.path_index]:
+                self.position = [path[self.path_index][0], path[self.path_index][1]]
+                if self.path_index + 1 != len(path):
+                    self.path_index += 1
+            if self.health <= 0:
+                self.kill()
+                self.healthbar.kill()
+                main.coins += int(self.max_health / 2)
+                break
+            self.image = self.images[int((pygame.time.get_ticks() - self.init_time) / 200 * gamespeed * self.speed) % len(self.images)]
+            self.rect = self.image.get_rect(center = self.position)
         
         self.distance_travelled = (pygame.time.get_ticks() - self.init_time) * self.speed
         

@@ -20,8 +20,10 @@ class Tower(pygame.sprite.Sprite):
         self.rotation = 180
         self.enemy_attacking_pos = (self.position[0], self.position[1] - 64)
         self.last_time_fired = 0
+        self.time_sped_up_last = 0
 	
     def update(self, screen, camera_offset, enemy_group, main):
+        time_sped_up = main.time_sped_up
         surface = pygame.Surface((32, 63))
         surface.set_colorkey((0, 0, 0))
         
@@ -29,15 +31,16 @@ class Tower(pygame.sprite.Sprite):
             for enemy in enemy_group:
                 if pygame.math.Vector2(enemy.position).distance_to(pygame.math.Vector2((self.position[0], self.position[1] + 12))) < self.range:
                     self.enemy_attacking_pos = enemy.position
-                    if pygame.time.get_ticks() >= self.last_time_fired + 1000 * self.speed:
+                    if pygame.time.get_ticks() + (time_sped_up - self.time_sped_up_last) >= self.last_time_fired + 1000 * self.speed:
                         main.projectile_group.add(Projectile(self.type_dict, (self.rect.center[0], self.rect.center[1]), enemy, self.main))
                         self.last_time_fired = pygame.time.get_ticks()
+                        self.time_sped_up_last = time_sped_up
                         if self.type_dict["type"] == "coconut_launcher":
                             self.main.sounds["slingshot"].play()
                     break
         
         self.image_upper = self.images_upper[pygame.math.clamp(int(
-        (pygame.time.get_ticks() - self.last_time_fired) / 1000 * self.speed * len(self.images_upper)
+        (pygame.time.get_ticks() - self.last_time_fired) / 1000 * self.speed * main.gamespeed * len(self.images_upper)
         ), 0, len(self.images_upper) - 1)]
         self.rotation = math.degrees(math.atan2(self.position[0] - self.enemy_attacking_pos[0], self.position[1] + 12 - self.enemy_attacking_pos[1])) - 180
         rotated_image_upper = pygame.transform.rotate(self.image_upper, self.rotation)
@@ -66,9 +69,9 @@ class Projectile(pygame.sprite.Sprite):
     def rect(self, pos):
         return self.image.get_rect(center = pos)
 
-    def update(self, screen, camera_offset, dt):
-        self.position += self.movement * 4 * dt
-        if self.position.distance_to(self.target_position) < 4:
+    def update(self, screen, camera_offset, dt, gamespeed):
+        self.position += self.movement * 4 * dt * gamespeed
+        if self.position.distance_to(self.target_position) < 4 + gamespeed * 2 - 1:
             if self.attack_type == "normal":
                 self.enemy.health -= self.attack
             elif self.attack_type == "area_attack":
@@ -93,8 +96,8 @@ class Area_Attack(pygame.sprite.Sprite):
     def rect(self, pos):
         return self.image.get_rect(center = pos)
         
-    def update(self, screen, camera_offset, dt):
-        if pygame.time.get_ticks() > self.init_time + 720:
+    def update(self, screen, camera_offset, dt, gamespeed):
+        if pygame.time.get_ticks() > self.init_time + 720 / gamespeed:
             self.kill()
-        self.image = self.images[pygame.math.clamp(int((pygame.time.get_ticks() - self.init_time) / 720 * len(self.images)), 0, len(self.images) - 1)]
+        self.image = self.images[pygame.math.clamp(int((pygame.time.get_ticks() - self.init_time) / 720 * gamespeed * len(self.images)), 0, len(self.images) - 1)]
         screen.blit(self.image, self.rect((self.position[0] + camera_offset[0], self.position[1] + camera_offset[1])))

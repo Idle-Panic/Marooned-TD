@@ -25,6 +25,8 @@ class Game:
         self.screen = pygame.display.set_mode((360, 240), self.flags)
         
         self.state = "title"
+        self.gamespeed = 1
+        self.time_sped_up = 0
         
         self.render_group = SortedGroup()
         
@@ -177,6 +179,8 @@ class Game:
             else:
                 self.clock.tick(60)
                 self.dt = 1
+                
+            self.time_sped_up += self.clock.get_time() * (self.gamespeed - 1)
             
             if self.state != "playing":
                 self.gui.gui_mode = self.state
@@ -199,7 +203,7 @@ class Game:
                     if self.gui.gui_mode in ["viewing_enemy", "viewing_tower"]:
                         self.gui.gui_mode = "stats"
             
-            self.wave_data.check_and_add(self.wave, self.wave_started)
+            self.wave_data.check_and_add(self.wave, self.wave_started, self.time_sped_up)
             
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -221,18 +225,18 @@ class Game:
             
             if self.state == "playing":
                 render_offset = [int(self.camera_offset[0]), int(self.camera_offset[1])]
-                self.water_tilemap.sinewave_move()
+                self.water_tilemap.sinewave_move(self.gamespeed)
                 self.water_tilemap.render(self.screen, render_offset)
                 self.ground_tilemap.render(self.screen, render_offset)
                 self.path_tilemap.render(self.screen, render_offset)
                 
-                self.enemy_group.update(self.screen, render_offset, self.path, self, self.dt)
+                self.enemy_group.update(self.screen, render_offset, self.path, self, self.dt, self.gamespeed)
                 self.sorted_enemy_group = sorted(self.enemy_group.sprites(), key = lambda spr: spr.distance_travelled, reverse=True)
                 self.tower_group.update(self.screen, render_offset, self.sorted_enemy_group, self)
                 
                 self.render_group.draw(self.screen, render_offset)
-                self.projectile_group.update(self.screen, render_offset, self.dt)
-                self.area_attack_group.update(self.screen, render_offset, self.dt)
+                self.projectile_group.update(self.screen, render_offset, self.dt, self.gamespeed)
+                self.area_attack_group.update(self.screen, render_offset, self.dt, self.gamespeed)
             
             self.gui.render(self.screen)
 
