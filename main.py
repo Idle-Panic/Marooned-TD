@@ -38,7 +38,9 @@ class Game:
         "gray" : (123, 123, 123),
         "green" : (88, 211, 50),
         "red" : (224, 60, 40),
-        "dark_blue" : (13, 32, 48)
+        "dark_blue" : (13, 32, 48),
+        "light_blue" : (152, 220, 255),
+        "yellow" : (255, 231, 55)
         }
         
         self.sounds = {
@@ -80,12 +82,12 @@ class Game:
         self.enemy_stats = [
         {"type" : "crab", "health" : 6, "speed" : 0.25},
         {"type" : "bat", "health" : 8, "speed" : 0.5},
-        {"type" : "hermit_crab", "health" : 24, "speed" : 0.2},
+        {"type" : "snapping_turtle", "health" : 24, "speed" : 0.2},
         ]
         
         self.tower_stats = [
-        {"type" : "coconut_launcher", "price" : 30, "attack" : 1, "speed" : 2, "range" : 80, "attack_type" : "normal"},
-        {"type" : "cannon", "price" : 55, "attack" : 3, "speed" : 4, "range" : 60, "attack_type" : "area_attack"},
+        {"type" : "coconut_launcher", "price" : [30, 20, 60], "attack" : [1, 1, 3], "speed" : [2, 1.3, 1], "range" : [80, 95, 120], "attack_type" : "normal"},
+        {"type" : "cannon", "price" : [55, 50, 90], "attack" : [3, 7, 21], "speed" : [4, 3.5, 3], "range" : [60, 65, 75], "attack_type" : "area_attack"},
         ]
         
         self.ground_tilemap = Tilemap(self, self.tile_size, 15, convert_tilemap("ground_tiles.txt", self.tile_size, 15), "ground_tiles", 0, False)
@@ -109,7 +111,7 @@ class Game:
         self.wave = 1
         self.wave_started = False
         
-        self.coins = 80
+        self.coins = 400
         self.health = 100
         self.tower_amount = 0
     
@@ -118,12 +120,12 @@ class Game:
         return rect
     
     def add_tower(self, type, position):
-        if self.tower_stats[type]["price"] <= self.coins:
+        if self.tower_stats[type]["price"][0] <= self.coins:
             tower = Tower(self.tower_stats[type], position, self)
             self.tower_group.add(tower)
             self.render_group.add(tower)
             
-            self.coins -= self.tower_stats[type]["price"]
+            self.coins -= self.tower_stats[type]["price"][0]
             self.sounds["construction"].play()
                 
     def add_enemy(self, type):

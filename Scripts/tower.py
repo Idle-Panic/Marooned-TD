@@ -13,9 +13,10 @@ class Tower(pygame.sprite.Sprite):
         self.position = pos
         self.rect = self.image_lower.get_rect(center = self.position)
         self.image = load_image("towers/" + type_dict["type"] + "/platform.png")
-        self.attack = type_dict["attack"]
-        self.speed = type_dict["speed"]
-        self.range = type_dict["range"]
+        self.level = 1
+        self.attack = type_dict["attack"][0]
+        self.speed = type_dict["speed"][0]
+        self.range = type_dict["range"][0]
         self.attack_type = type_dict["attack_type"]
         self.rotation = 180
         self.enemy_attacking_pos = (self.position[0], self.position[1] - 64)
@@ -23,6 +24,9 @@ class Tower(pygame.sprite.Sprite):
         self.time_sped_up_last = 0
 	
     def update(self, screen, camera_offset, enemy_group, main):
+        self.attack = self.type_dict["attack"][self.level-1]
+        self.speed = self.type_dict["speed"][self.level-1]
+        self.range = self.type_dict["range"][self.level-1]
         time_sped_up = main.time_sped_up
         surface = pygame.Surface((32, 63))
         surface.set_colorkey((0, 0, 0))
@@ -32,7 +36,7 @@ class Tower(pygame.sprite.Sprite):
                 if pygame.math.Vector2(enemy.position).distance_to(pygame.math.Vector2((self.position[0], self.position[1] + 12))) < self.range:
                     self.enemy_attacking_pos = enemy.position
                     if pygame.time.get_ticks() + (time_sped_up - self.time_sped_up_last) >= self.last_time_fired + 1000 * self.speed:
-                        main.projectile_group.add(Projectile(self.type_dict, (self.rect.center[0], self.rect.center[1]), enemy, self.main))
+                        main.projectile_group.add(Projectile(self.type_dict, (self.rect.center[0], self.rect.center[1]), enemy, self.main, self.attack))
                         self.last_time_fired = pygame.time.get_ticks()
                         self.time_sped_up_last = time_sped_up
                         if self.type_dict["type"] == "coconut_launcher":
@@ -52,13 +56,13 @@ class Tower(pygame.sprite.Sprite):
         # What are all of these random values in this method? I don't know, but it works!
 
 class Projectile(pygame.sprite.Sprite):
-    def __init__(self, type_dict, pos, enemy, main):
+    def __init__(self, type_dict, pos, enemy, main, attack):
         super().__init__()
         self.main = main
         self.position = pygame.math.Vector2(pos)
         self.enemy = enemy
         self.type_dict = type_dict
-        self.attack = type_dict["attack"]
+        self.attack = attack
         self.attack_type = type_dict["attack_type"]
         self.image = load_image("towers/" + type_dict["type"] + "/projectile.png")
         
@@ -75,17 +79,17 @@ class Projectile(pygame.sprite.Sprite):
             if self.attack_type == "normal":
                 self.enemy.health -= self.attack
             elif self.attack_type == "area_attack":
-                self.main.area_attack_group.add(Area_Attack(self.type_dict, self.position, self.main))
+                self.main.area_attack_group.add(Area_Attack(self.type_dict, self.position, self.main, self.attack))
                 self.main.sounds["explosion"].play()
             self.kill()
         screen.blit(self.image, self.rect((self.position[0] + camera_offset[0], self.position[1] + camera_offset[1])))
         
 class Area_Attack(pygame.sprite.Sprite):
-    def __init__(self, type_dict, pos, main):
+    def __init__(self, type_dict, pos, main, attack):
         super().__init__()
         self.main = main
         self.position = pygame.math.Vector2(pos)
-        self.attack = type_dict["attack"]
+        self.attack = attack
         self.images = load_images("towers/" + type_dict["type"] + "/area_attack")
         self.image = self.images[0]
         self.init_time = pygame.time.get_ticks()

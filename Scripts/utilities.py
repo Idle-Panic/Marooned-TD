@@ -45,6 +45,31 @@ def process_font(text, color, position, screen):
     text_rect = text_rendered.get_rect(midtop = (position))
     screen.blit(text_rendered, text_rect)
     
+def swap_img_color(image, color_in, color_out):
+    old_img = pygame.Surface(image.get_size())
+    old_img.blit(image)
+    old_img.set_colorkey(color_in)
+    new_img = pygame.Surface(image.get_size())
+    new_img.fill(color_out)
+    new_img.blit(old_img)
+    new_img.set_colorkey((0, 0, 0))
+    return new_img
+    
+def swap_img_colors(image_list, colors_in, colors_out):
+    if type(image_list) != list:
+        new_img = image_list
+        for i in range(len(colors_in)):
+            new_img = swap_img_color(new_img, colors_in[i], colors_out[i])
+        return new_img
+    else:
+        new_img_list = []
+        for img in image_list:
+            new_img = img
+            for i in range(len(colors_in)):
+                new_img = swap_img_color(new_img, colors_in[i], colors_out[i])
+            new_img_list.append(new_img)
+        return new_img_list
+    
 class SortedGroup(pygame.sprite.Group):
     def __init__(self):
         super().__init__()

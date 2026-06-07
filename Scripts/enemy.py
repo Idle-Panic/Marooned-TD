@@ -88,7 +88,7 @@ class Enemy(pygame.sprite.Sprite):
             if self.health <= 0:
                 self.kill()
                 self.healthbar.kill()
-                main.coins += int(self.max_health / 2)
+                main.coins += int((self.max_health+-3)**0.5)
                 break
             self.image = self.images[int((pygame.time.get_ticks() - self.init_time) / 200 * gamespeed * self.speed) % len(self.images)]
             self.rect = self.image.get_rect(center = self.position)
