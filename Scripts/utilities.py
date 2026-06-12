@@ -47,11 +47,11 @@ def process_font(text, color, position, screen):
     
 def swap_img_color(image, color_in, color_out):
     old_img = pygame.Surface(image.get_size())
-    old_img.blit(image)
+    old_img.blit(image, (0, 0))
     old_img.set_colorkey(color_in)
     new_img = pygame.Surface(image.get_size())
     new_img.fill(color_out)
-    new_img.blit(old_img)
+    new_img.blit(old_img, (0, 0))
     new_img.set_colorkey((0, 0, 0))
     return new_img
     

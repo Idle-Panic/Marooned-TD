@@ -1,6 +1,9 @@
 crab,2.5;crab,2.5;crab,4;crab,2.5;crab,2.5;crab,2.5
 bat,3;bat,4;crab,2.5;crab,2.5;crab,2.5;crab,2.5;crab,2.5;crab,2.5
 crab,2;crab,2;crab,2;crab,5;bat,2.5;bat,2.5;bat,2.5;bat,2.5
-bat,2.5;bat,2.5;bat,2.5;bat,2.5;bat,5;bat,2.5;bat,2.5;bat,2.5
+bat,2.5;bat,2.5;bat,2.5;bat,5;bat,2.5;bat,2.5;bat,2.5;bat,2.5
 bat,2;bat,2;snapping_turtle,6;crab,2;crab,2;crab,2;crab,2
 snapping_turtle,4;snapping_turtle,4;snapping_turtle,4
+pirate,4;pirate,4;pirate,4;pirate,4
+pirate,2;pirate,2;pirate,2;pirate,4;pirate,2;pirate,2;pirate,2;pirate,2
+captain,2;captain,2;captain,2;captain,2

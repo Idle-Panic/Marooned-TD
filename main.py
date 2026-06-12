@@ -50,6 +50,8 @@ class Game:
         "slingshot" : load_audio("slingshot.ogg", "sfx"),
         "explosion" : load_audio("explosion.ogg", "sfx")
         }
+        for sound in self.sounds:
+            self.sounds[sound].set_volume(0.4)
         
         self.assets = {
         "ground_tiles" : load_images("ground_tiles"),
@@ -80,9 +82,11 @@ class Game:
                         self.render_group.add(prop)
         
         self.enemy_stats = [
-        {"type" : "crab", "health" : 6, "speed" : 0.25},
-        {"type" : "bat", "health" : 8, "speed" : 0.5},
-        {"type" : "snapping_turtle", "health" : 24, "speed" : 0.2},
+        {"type" : "crab", "health" : 6, "speed" : 0.3, "coins" : 1},
+        {"type" : "bat", "health" : 8, "speed" : 0.5, "coins" : 2},
+        {"type" : "snapping_turtle", "health" : 28, "speed" : 0.2, "coins" : 3},
+        {"type" : "pirate", "health" : 32, "speed" : 0.35, "coins" : 3},
+        {"type" : "captain", "health" : 99, "speed" : 0.3, "coins" : 5},
         ]
         
         self.tower_stats = [
@@ -111,7 +115,7 @@ class Game:
         self.wave = 1
         self.wave_started = False
         
-        self.coins = 400
+        self.coins = 80
         self.health = 100
         self.tower_amount = 0
     

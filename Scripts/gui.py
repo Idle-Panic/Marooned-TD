@@ -9,6 +9,7 @@ class GUI:
         self.background_pos = ()
         self.background_width = 150
         self.viewing_tower = 0
+        self.hovering_over_upgrade = False
         self.images = {
         "title_background" : load_image("gui/title_background.png"),
         "title" : load_image("gui/title.png"),
@@ -93,7 +94,7 @@ class GUI:
             if self.tower_displaying:
                 self.components["icons"].icons[25]["image"].blit(self.tower_displaying.image, (0, -16))
             if self.enemy_displaying:
-                self.components["icons"].icons[26]["image"].blit(self.enemy_displaying.image)
+                self.components["icons"].icons[26]["image"].blit(self.enemy_displaying.image, (0, 0))
             
             for icon in self.components["icons"].icons:
                 if not icon["mode"] or icon["mode"] == self.gui_mode:
@@ -125,6 +126,19 @@ class GUI:
         if self.main.state == "playing":
             for text in self.components["texts"].texts:
                 if text["mode"] == self.gui_mode:
+                    if "upgrade" in text["text"]:
+                        if self.tower_displaying.level != 3:
+                            surface1 = pygame.Surface((84, 20))
+                            surface1.set_colorkey((0, 0, 0))
+                            process_font(text["text"], text["color"], (40, 0), surface1)
+                            surface1.scroll(int(pygame.time.get_ticks() / 90 * -1), 0, pygame.SCROLL_REPEAT)
+                            surface2 = pygame.Surface((60, 20))
+                            surface2.set_colorkey((0, 0, 0))
+                            surface2.blit(surface1, (0, 0))
+                            screen.blit(surface2, surface2.get_rect(midtop = text["position"]))
+                        else:
+                            process_font("Max", text["color"], text["position"], self.main.screen)
+                        continue
                     if text["color"] != self.main.colors["dark_brown"]:
                         process_font(text["text"], text["color"], text["position"], self.main.screen)
                 elif type(text["mode"]) == list:
@@ -251,6 +265,10 @@ class Buttons:
                         break
                         
         for button in self.valid_buttons:
+            if button["image_up"] == self.gui.images["upgrade_button_up"] and button["rect"].collidepoint(pygame.mouse.get_pos()):
+                self.gui.hovering_over_upgrade = True
+            elif button["image_up"] == self.gui.images["upgrade_button_up"] and not button["rect"].collidepoint(pygame.mouse.get_pos()):
+                self.gui.hovering_over_upgrade = False
             if mouse_being_pressed:
                 if button["rect"].collidepoint(mouse_pos):
                     button["being_pressed"] = True
@@ -275,7 +293,9 @@ class Buttons:
                         if button["image_up"] == self.gui.images["gamespeed_button_3x_up"]:
                             self.gui.main.gamespeed = 3
                         if button["image_up"] == self.gui.images["startwave_button_up"]:
-                            self.gui.main.wave_started = True
+                            if not self.gui.main.wave_started:
+                                self.gui.main.wave_started = True
+                                self.gui.main.coins += int(((self.gui.main.wave - 1) * 10)**0.7)
                         if button["image_up"] == self.gui.images["upgrade_button_up"]:
                             tower = self.gui.tower_displaying
                             if tower.level < 3 and self.gui.main.coins >= tower.type_dict["price"][tower.level]:
@@ -303,7 +323,8 @@ class Buttons:
                         if button["image_up"] == self.gui.images["title_start_button_up"]:
                             self.gui.main.state = "playing"
                             load_audio("main_theme.ogg", "music")
-                            pygame.mixer.music.play(-1, 0.0, 4000)
+                            pygame.mixer.music.play(-1, 0.0, 8000)
+                            pygame.mixer.music.set_volume(0.5)
                                 
                         if button["image_up"] == self.gui.images["compass_button_up_right"] and self.gui.gui_mode == "build":
                             self.gui.viewing_tower = pygame.math.clamp(self.gui.viewing_tower + 1, 0, len(self.gui.main.tower_stats) - 1)
@@ -394,11 +415,18 @@ class Texts:
         self.texts[12]["text"] = str(self.gui.main.tower_stats[self.gui.viewing_tower]["speed"][0])
         if self.gui.tower_displaying:
             self.texts[15]["text"] = self.gui.tower_displaying.type_dict["type"].replace("_", " ")
-            self.texts[16]["text"] = str(self.gui.tower_displaying.attack)
-            self.texts[17]["text"] = str(self.gui.tower_displaying.range)
-            self.texts[18]["text"] = str(self.gui.tower_displaying.speed)
+            if not self.gui.hovering_over_upgrade or self.gui.tower_displaying.level == 3:
+                self.texts[16]["text"] = str(self.gui.tower_displaying.attack)
+                self.texts[17]["text"] = str(self.gui.tower_displaying.range)
+                self.texts[18]["text"] = str(self.gui.tower_displaying.speed)
+            else:
+                self.texts[16]["text"] = str(self.gui.tower_displaying.type_dict["attack"][self.gui.tower_displaying.level])
+                self.texts[17]["text"] = str(self.gui.tower_displaying.type_dict["range"][self.gui.tower_displaying.level])
+                self.texts[18]["text"] = str(self.gui.tower_displaying.type_dict["speed"][self.gui.tower_displaying.level])
             self.texts[22]["text"] = f"Level {self.gui.tower_displaying.level}"
             self.texts[23]["text"] = f"Level {self.gui.tower_displaying.level}"
+            if self.gui.tower_displaying.level != 3:
+                self.texts[24]["text"] = "upgrade(" + str(round(self.gui.tower_displaying.type_dict["price"][self.gui.tower_displaying.level])) + ")"
             self.texts[25]["text"] = "sell(" + str(round(self.gui.tower_displaying.type_dict["price"][0]*(2/3))) + ")"
         if self.gui.enemy_displaying:
             self.texts[19]["text"] = self.gui.enemy_displaying.type.replace("_", " ")

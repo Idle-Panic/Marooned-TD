@@ -4,7 +4,7 @@ from Scripts.utilities import load_image, load_images
 class Wave_Data:
     def __init__(self, main, txtfile):
         self.main = main
-        self.wave_amount = 6
+        self.wave_amount = 9
         self.wave_enemies = []
         self.wave_pauses = []
         self.wave_started = False
@@ -59,6 +59,7 @@ class Enemy(pygame.sprite.Sprite):
         self.speed = data["speed"]
         self.max_health = data["health"]
         self.health = data["health"]
+        self.coins = data["coins"]
         self.init_time = pygame.time.get_ticks()
         self.distance_travelled = 0
         
@@ -88,7 +89,7 @@ class Enemy(pygame.sprite.Sprite):
             if self.health <= 0:
                 self.kill()
                 self.healthbar.kill()
-                main.coins += int((self.max_health+-3)**0.5)
+                main.coins += self.coins
                 break
             self.image = self.images[int((pygame.time.get_ticks() - self.init_time) / 200 * gamespeed * self.speed) % len(self.images)]
             self.rect = self.image.get_rect(center = self.position)
