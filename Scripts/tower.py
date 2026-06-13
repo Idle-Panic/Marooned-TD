@@ -41,6 +41,8 @@ class Tower(pygame.sprite.Sprite):
                         self.time_sped_up_last = time_sped_up
                         if self.type_dict["type"] == "coconut_launcher":
                             self.main.sounds["slingshot"].play()
+                        if self.type_dict["type"] == "puckle_gun":
+                            self.main.sounds["gunshot"].play()
                     break
         
         self.image_upper = self.images_upper[pygame.math.clamp(int(

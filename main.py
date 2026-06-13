@@ -48,7 +48,8 @@ class Game:
         "sword" : load_audio("sword.ogg", "sfx"),
         "construction" : load_audio("construction.ogg", "sfx"),
         "slingshot" : load_audio("slingshot.ogg", "sfx"),
-        "explosion" : load_audio("explosion.ogg", "sfx")
+        "explosion" : load_audio("explosion.ogg", "sfx"),
+        "gunshot" : load_audio("gunshot.ogg", "sfx")
         }
         for sound in self.sounds:
             self.sounds[sound].set_volume(0.4)
@@ -91,7 +92,8 @@ class Game:
         
         self.tower_stats = [
         {"type" : "coconut_launcher", "price" : [30, 20, 60], "attack" : [1, 1, 3], "speed" : [2, 1.3, 1], "range" : [80, 95, 120], "attack_type" : "normal"},
-        {"type" : "cannon", "price" : [55, 50, 90], "attack" : [3, 7, 21], "speed" : [4, 3.5, 3], "range" : [60, 65, 75], "attack_type" : "area_attack"},
+        {"type" : "cannon", "price" : [55, 50, 95], "attack" : [3, 7, 18], "speed" : [4, 3.5, 3], "range" : [60, 65, 75], "attack_type" : "area_attack"},
+        {"type" : "puckle_gun", "price" : [60, 65, 99], "attack" : [1, 1, 2], "speed" : [0.8, 0.5, 0.3], "range" : [75, 85, 95], "attack_type" : "normal"},
         ]
         
         self.ground_tilemap = Tilemap(self, self.tile_size, 15, convert_tilemap("ground_tiles.txt", self.tile_size, 15), "ground_tiles", 0, False)
@@ -229,8 +231,8 @@ class Game:
             
             self.tower_amount = len(self.tower_group)
             
+            render_offset = [int(self.camera_offset[0]), int(self.camera_offset[1])]
             if self.state == "playing":
-                render_offset = [int(self.camera_offset[0]), int(self.camera_offset[1])]
                 self.water_tilemap.sinewave_move(self.gamespeed)
                 self.water_tilemap.render(self.screen, render_offset)
                 self.ground_tilemap.render(self.screen, render_offset)
@@ -244,7 +246,7 @@ class Game:
                 self.projectile_group.update(self.screen, render_offset, self.dt, self.gamespeed)
                 self.area_attack_group.update(self.screen, render_offset, self.dt, self.gamespeed)
             
-            self.gui.render(self.screen)
+            self.gui.render(self.screen, render_offset)
 
             pygame.display.update()
             

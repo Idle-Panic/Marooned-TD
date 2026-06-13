@@ -117,4 +117,7 @@ class Healthbar(pygame.sprite.Sprite):
         self.rect.centery = int(pos[1]) - 2
         pygame.draw.line(self.image, main.colors["dark_blue"], (0, 1), (32, 1), 4)
         pygame.draw.line(self.image, main.colors["red"], (1, 1), (30, 1), 2)
-        pygame.draw.line(self.image, main.colors["green"], (1, 1), (health / max_health * 29 + 1 , 1), 2)
+        if health >= max_health / 29:
+            pygame.draw.line(self.image, main.colors["green"], (1, 1), (health / max_health * 29 + 1 , 1), 2)
+        else:
+            pygame.draw.line(self.image, main.colors["green"], (1, 1), (2 , 1), 2)

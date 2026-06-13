@@ -59,6 +59,8 @@ class GUI:
         "upgrade_button_down" : load_image("gui/upgrade_button_down.png"),
         "sell_button_up" : load_image("gui/sell_button_up.png"),
         "sell_button_down" : load_image("gui/sell_button_down.png"),
+        "puckle_gun_blueprint_green" : load_image("towers/puckle_gun/blueprint_green.png"),
+        "puckle_gun_blueprint_red" : load_image("towers/puckle_gun/blueprint_red.png"),
         }
         self.components = {"background" : Background(), "buttons" : Buttons(self), "blueprints": Blueprints(self), "icons" : Icons(self), "texts" : Texts(self),
         "steering_wheel" : Steering_Wheel(self)}
@@ -69,7 +71,11 @@ class GUI:
         self.components["icons"].icons[25]["image"].set_colorkey((0, 0, 0))
         self.components["icons"].icons[26]["image"].set_colorkey((0, 0, 0))
     
-    def render(self, screen):
+    def render(self, screen, camera_offset):
+        if self.tower_displaying and self.gui_mode == "viewing_tower":
+            pygame.draw.circle(screen, (140, 214, 18), (self.tower_displaying.rect.center[0] + camera_offset[0], self.tower_displaying.rect.center[1] + 12 + camera_offset[1]),
+            self.tower_displaying.range, 2)
+        
         if self.main.state == "title":
             screen.blit(self.images["title_background"], (0, 0 - pygame.mouse.get_pos()[1]**0.7))
             screen.blit(self.images["title"], (0, 0))
@@ -162,6 +168,7 @@ class Blueprints:
         self.blueprints = [
         dict(zip(["image_red", "image_green", "rect"], self.get_blueprint_dict("coconut_launcher"))),
         dict(zip(["image_red", "image_green", "rect"], self.get_blueprint_dict("cannon"))),
+        dict(zip(["image_red", "image_green", "rect"], self.get_blueprint_dict("puckle_gun"))),
         ]
         self.rect = self.blueprints[0]["rect"]
         self.collision_rect = pygame.Rect(self.position[0] - 16, self.position[1] + 14, 32, 32)
@@ -303,13 +310,13 @@ class Buttons:
                                 tower.level += 1
                                 if self.gui.tower_displaying.level == 2:
                                     tower.images_upper = swap_img_colors(tower.images_upper, [(255, 130, 206), (224, 60, 40), (135, 22, 70)], 
-                                    [(255, 231, 55), (246, 143, 55), (173, 78, 26)])
+                                    [(255, 231, 55), (255, 187, 49), (204, 143, 21)])
                                     tower.image_lower = swap_img_colors(tower.image_lower, [(255, 130, 206), (224, 60, 40), (135, 22, 70)], 
-                                    [(255, 231, 55), (246, 143, 55), (173, 78, 26)])
+                                    [(255, 231, 55), (255, 187, 49), (204, 143, 21)])
                                 else:
-                                    tower.images_upper = swap_img_colors(tower.images_upper, [(255, 231, 55), (246, 143, 55), (173, 78, 26)], 
+                                    tower.images_upper = swap_img_colors(tower.images_upper, [(255, 231, 55), (255, 187, 49), (204, 143, 21)], 
                                     [(91, 168, 255), (10, 137, 255), (2, 74, 202)])
-                                    tower.image_lower = swap_img_colors(tower.image_lower, [(255, 231, 55), (246, 143, 55), (173, 78, 26)], 
+                                    tower.image_lower = swap_img_colors(tower.image_lower, [(255, 231, 55), (255, 187, 49), (204, 143, 21)], 
                                     [(91, 168, 255), (10, 137, 255), (2, 74, 202)])
                         if button["image_up"] == self.gui.images["sell_button_up"]:
                             if self.gui.tower_displaying:
