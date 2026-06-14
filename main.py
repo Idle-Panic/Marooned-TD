@@ -231,6 +231,7 @@ class Game:
             
             self.tower_amount = len(self.tower_group)
             
+            self.camera_offset = [pygame.math.clamp(self.camera_offset[0], -120-256, 256), pygame.math.clamp(self.camera_offset[1], -240-128, 128)]
             render_offset = [int(self.camera_offset[0]), int(self.camera_offset[1])]
             if self.state == "playing":
                 self.water_tilemap.sinewave_move(self.gamespeed)

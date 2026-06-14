@@ -10,6 +10,7 @@ class GUI:
         self.background_width = 150
         self.viewing_tower = 0
         self.hovering_over_upgrade = False
+        self.hidden = False
         self.images = {
         "title_background" : load_image("gui/title_background.png"),
         "title" : load_image("gui/title.png"),
@@ -61,10 +62,15 @@ class GUI:
         "sell_button_down" : load_image("gui/sell_button_down.png"),
         "puckle_gun_blueprint_green" : load_image("towers/puckle_gun/blueprint_green.png"),
         "puckle_gun_blueprint_red" : load_image("towers/puckle_gun/blueprint_red.png"),
+        "arrow_button_up_right" : load_image("gui/arrow_button_up.png"),
+        "arrow_button_down_right" : load_image("gui/arrow_button_down.png"),
+        "arrow_button_up_left" : pygame.transform.flip(load_image("gui/arrow_button_up.png"), True, False),
+        "arrow_button_down_left" : pygame.transform.flip(load_image("gui/arrow_button_down.png"), True, False),
         }
         self.components = {"background" : Background(), "buttons" : Buttons(self), "blueprints": Blueprints(self), "icons" : Icons(self), "texts" : Texts(self),
         "steering_wheel" : Steering_Wheel(self)}
         
+        self.buttons_when_hidden = [self.components["buttons"].buttons[3], self.components["buttons"].buttons[13]]
         self.tower_displaying = False
         self.enemy_displaying = False
         
@@ -81,6 +87,17 @@ class GUI:
             screen.blit(self.images["title"], (0, 0))
             
         elif self.main.state == "playing":
+            if self.hidden:
+                for button in self.buttons_when_hidden:
+                    if button["image_up"] == self.images["startwave_button_up"] and self.main.wave_started == True:
+                        screen.blit(self.images["startwave_button_gray"], button["rect"])
+                    elif button["being_pressed"] == False:
+                        screen.blit(button["image_up"], button["rect"])
+                    else:
+                        screen.blit(button["image_down"], button["rect"])
+                screen.blit(self.components["steering_wheel"].rotated_image, 
+                self.components["steering_wheel"].rotated_image.get_rect(center = self.components["steering_wheel"].position))
+                return None
             if self.gui_mode == "build":
                 self.components["blueprints"].update(self.main.camera_offset)
                 if self.components["blueprints"].valid == True:
@@ -252,6 +269,8 @@ class Buttons:
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("gamespeed_button_3x_up", (360-self.gui.background_width/2+40, 204), False))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("upgrade_button_up", (360-self.gui.background_width/2-34, 172), "viewing_tower"))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("sell_button_up", (360-self.gui.background_width/2+34, 172), "viewing_tower"))),
+        dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("arrow_button_up_right", (360-self.gui.background_width-18, 0), False))),
+        dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("arrow_button_up_left", (360-self.gui.background_width-18, 0), False))),
         ]
         self.valid_buttons = []
         
@@ -263,6 +282,10 @@ class Buttons:
     def check_collisions(self, mouse_being_pressed, mouse_pos):
         self.valid_buttons = []
         for button in self.buttons:
+            if not self.gui.hidden and button["image_up"] == self.gui.images["arrow_button_up_left"]:
+                continue
+            if self.gui.hidden and button["image_up"] == self.gui.images["arrow_button_up_right"]:
+                continue
             if button["mode"] == self.gui.gui_mode or (not button["mode"] and self.gui.main.state == "playing") or button["mode"] == self.gui.main.state:
                 self.valid_buttons.append(button)
             elif type(button["mode"]) == list:
@@ -286,9 +309,20 @@ class Buttons:
                     if button["being_pressed"] == True:
                         button["being_pressed"] = False
                         if button["image_up"] != self.gui.images["startwave_button_up"]:
-                            self.gui.main.sounds["click"].play()
+                            if not self.gui.hidden or button["image_up"] == self.gui.images["arrow_button_up_left"]:
+                                self.gui.main.sounds["click"].play()
                         else:
                             self.gui.main.sounds["sword"].play()
+                        if button["image_up"] == self.gui.images["startwave_button_up"]:
+                            if not self.gui.main.wave_started:
+                                self.gui.main.wave_started = True
+                                self.gui.main.coins += int(((self.gui.main.wave - 1) * 10)**0.7)
+                        if button["image_up"] == self.gui.images["arrow_button_up_left"]:
+                            self.gui.hidden = False
+                        if button["image_up"] == self.gui.images["arrow_button_up_right"]:
+                            self.gui.hidden = True
+                        if self.gui.hidden:
+                            return None
                         if button["image_up"] == self.gui.images["sabre_button_up_right"]:
                             self.gui.gui_mode = "build"
                         if button["image_up"] == self.gui.images["sabre_button_up_left"]:
@@ -299,10 +333,6 @@ class Buttons:
                             self.gui.main.gamespeed = 2
                         if button["image_up"] == self.gui.images["gamespeed_button_3x_up"]:
                             self.gui.main.gamespeed = 3
-                        if button["image_up"] == self.gui.images["startwave_button_up"]:
-                            if not self.gui.main.wave_started:
-                                self.gui.main.wave_started = True
-                                self.gui.main.coins += int(((self.gui.main.wave - 1) * 10)**0.7)
                         if button["image_up"] == self.gui.images["upgrade_button_up"]:
                             tower = self.gui.tower_displaying
                             if tower.level < 3 and self.gui.main.coins >= tower.type_dict["price"][tower.level]:
