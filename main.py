@@ -40,7 +40,8 @@ class Game:
         "red" : (224, 60, 40),
         "dark_blue" : (13, 32, 48),
         "light_blue" : (152, 220, 255),
-        "yellow" : (255, 231, 55)
+        "yellow" : (255, 231, 55),
+        "black" : (21, 21, 21)
         }
         
         self.sounds = {
@@ -182,6 +183,8 @@ class Game:
     
     async def main(self):
         while True:
+            keyboard_movement = [0, 0]
+            
             if sys.platform == "emscripten":
                 self.dt = self.clock.tick()/16.6
             else:
@@ -202,17 +205,6 @@ class Game:
             if self.mouse_being_pressed:
                 self.mouse_pos = pygame.mouse.get_pos()
             
-            if self.state == "playing":
-                self.gui.components["steering_wheel"].update(self.mouse_being_pressed, self.mouse_pos, self.camera_offset, self.dt)
-            
-            self.gui.components["buttons"].check_collisions(self.mouse_being_pressed, self.mouse_pos)
-            if self.mouse_being_pressed:
-                if self.check_mouse_collisions(self.mouse_being_pressed) == False:
-                    if self.gui.gui_mode in ["viewing_enemy", "viewing_tower"]:
-                        self.gui.gui_mode = "stats"
-            
-            self.wave_data.check_and_add(self.wave, self.wave_started, self.time_sped_up)
-            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -225,9 +217,28 @@ class Game:
                         else:
                             self.flags = pygame.SCALED
                         pygame.display.set_mode((360, 240), self.flags)
+            if pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_a]:
+                keyboard_movement[0] -= 1
+            if pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_d]:
+                keyboard_movement[0] += 1
+            if pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_w]:
+                keyboard_movement[1] -= 1
+            if pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_s]:
+                keyboard_movement[1] += 1
                     #DETERMINE PATH INDICES (DEVELOPMENT ONLY)
                     #if event.key in [pygame.K_SPACE, pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN]:
                     #    self.determine_path_index(event.key, pygame.mouse.get_pos())
+            
+            if self.state == "playing":
+                self.gui.components["steering_wheel"].update(self.mouse_being_pressed, self.mouse_pos, self.camera_offset, self.dt, keyboard_movement)
+            
+            self.gui.components["buttons"].check_collisions(self.mouse_being_pressed, self.mouse_pos)
+            if self.mouse_being_pressed:
+                if self.check_mouse_collisions(self.mouse_being_pressed) == False:
+                    if self.gui.gui_mode in ["viewing_enemy", "viewing_tower"]:
+                        self.gui.gui_mode = "stats"
+            
+            self.wave_data.check_and_add(self.wave, self.wave_started, self.time_sped_up)
             
             self.tower_amount = len(self.tower_group)
             

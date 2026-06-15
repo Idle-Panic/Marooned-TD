@@ -20,7 +20,7 @@ class Tower(pygame.sprite.Sprite):
         self.attack_type = type_dict["attack_type"]
         self.rotation = 180
         self.enemy_attacking_pos = (self.position[0], self.position[1] - 64)
-        self.last_time_fired = 0
+        self.last_time_fired = pygame.time.get_ticks()
         self.time_sped_up_last = 0
 	
     def update(self, screen, camera_offset, enemy_group, main):
@@ -45,9 +45,10 @@ class Tower(pygame.sprite.Sprite):
                             self.main.sounds["gunshot"].play()
                     break
         
-        self.image_upper = self.images_upper[pygame.math.clamp(int(
-        (pygame.time.get_ticks() - self.last_time_fired) / 1000 * self.speed * main.gamespeed * len(self.images_upper)
-        ), 0, len(self.images_upper) - 1)]
+        self.image_upper = self.images_upper[int(pygame.math.clamp(
+        (pygame.time.get_ticks() - self.last_time_fired) / self.speed / 1000 * len(self.images_upper) * main.gamespeed,
+        0, len(self.images_upper) - 1))]
+        
         self.rotation = math.degrees(math.atan2(self.position[0] - self.enemy_attacking_pos[0], self.position[1] + 12 - self.enemy_attacking_pos[1])) - 180
         rotated_image_upper = pygame.transform.rotate(self.image_upper, self.rotation)
         

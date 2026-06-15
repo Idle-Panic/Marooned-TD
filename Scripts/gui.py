@@ -11,6 +11,7 @@ class GUI:
         self.viewing_tower = 0
         self.hovering_over_upgrade = False
         self.hidden = False
+        self.move_information_text_exists = True
         self.images = {
         "title_background" : load_image("gui/title_background.png"),
         "title" : load_image("gui/title.png"),
@@ -136,6 +137,8 @@ class GUI:
                     for mode in text["mode"]:
                         if mode == self.gui_mode and text["color"] != (123, 123, 123):
                             process_font(text["text"], text["color"], text["position"], self.main.screen)
+                elif not text["mode"]:
+                    process_font(text["text"], text["color"], text["position"], self.main.screen)
                     
         for button in self.components["buttons"].buttons:
             if button in self.components["buttons"].valid_buttons:
@@ -442,6 +445,8 @@ class Texts:
         {"text" : "Level 1", "color" : self.gui.main.colors["dark_blue"], "position" : (360-self.gui.background_width/2+31, 78), "mode" : "viewing_tower"},
         {"text" : "upgrade", "color" : self.gui.main.colors["light_blue"], "position" : (360-self.gui.background_width/2-34, 176), "mode" : "viewing_tower"},
         {"text" : "sell(20c)", "color" : self.gui.main.colors["yellow"], "position" : (360-self.gui.background_width/2+34, 176), "mode" : "viewing_tower"},
+        {"text" : "Move by dragging \nthe steering wheel \nor pressing any \narrow keys!", "color" : self.gui.main.colors["black"], 
+        "position" : (72, 164), "mode" : False},
         ]
         
     def update(self):
@@ -495,11 +500,16 @@ class Steering_Wheel:
         self.rotation = 0
         self.rotated_image = self.image
         
-    def update(self, mouse_being_pressed, mouse_pos, camera_offset, dt):
+    def update(self, mouse_being_pressed, mouse_pos, camera_offset, dt, keyboard_movement):
         offset = (mouse_pos[0] - self.norm_pos[0], mouse_pos[1] - self.norm_pos[1])
+        if keyboard_movement != [0, 0]:
+            offset = (keyboard_movement[0] * 65, keyboard_movement[1] * 35)
         distance = (offset[0]**2 + offset[1]**2)**0.5
         factor = 1 / (1 + distance * 0.01)
-        if mouse_being_pressed == True and (self.rect.collidepoint(mouse_pos) or self.being_held):
+        if (mouse_being_pressed == True and (self.rect.collidepoint(mouse_pos) or self.being_held)) or keyboard_movement != [0, 0]:
+            if (offset[0] > 20 or offset[1] > 20) and self.gui.move_information_text_exists:
+                self.gui.move_information_text_exists = False
+                self.gui.components["texts"].texts.pop(26)
             self.being_held = True
             self.position = (self.norm_pos[0] + offset[0] * factor, self.norm_pos[1] + offset[1] * factor)
             self.move_camera(offset, distance, factor, camera_offset, dt)
