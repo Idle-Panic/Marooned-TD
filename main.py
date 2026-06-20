@@ -261,11 +261,13 @@ class Game:
                 if self.check_mouse_collisions(self.mouse_being_pressed) == False:
                     if self.gui.gui_mode in ["viewing_enemy", "viewing_tower"]:
                         self.gui.gui_mode = "stats"
+                        self.gui.tower_displaying = False
             
             self.tower_amount = len(self.tower_group)
             
             self.camera_offset = [pygame.math.clamp(self.camera_offset[0], -120-256, 256), pygame.math.clamp(self.camera_offset[1], -240-128, 128)]
             render_offset = [int(self.camera_offset[0]), int(self.camera_offset[1])]
+            
             if self.state in ["playing", "defeated", "victory"]:
                 self.water_tilemap.sinewave_move(self.gamespeed)
                 self.water_tilemap.render(self.screen, render_offset)

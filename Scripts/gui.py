@@ -170,13 +170,14 @@ class GUI:
                     if "upgrade" in text["text"]:
                         if self.tower_displaying.level != 3:
                             surface1 = pygame.Surface((84, 20))
-                            surface1.set_colorkey((0, 0, 0))
                             process_font(text["text"], text["color"], (40, 0), surface1)
-                            surface1.scroll(int(pygame.time.get_ticks() / 90 * -1), 0, pygame.SCROLL_REPEAT)
-                            surface2 = pygame.Surface((60, 20))
-                            surface2.set_colorkey((0, 0, 0))
-                            surface2.blit(surface1, (0, 0))
-                            screen.blit(surface2, surface2.get_rect(midtop = text["position"]))
+                            surface2 = pygame.Surface((84, 20))
+                            process_font(text["text"], text["color"], (40, 0), surface2)
+                            surface3 = pygame.Surface((60, 20))
+                            surface3.set_colorkey((0, 0, 0))
+                            surface3.blit(surface1, (int(pygame.time.get_ticks() / 90 * -1) % 84 - 84, 0))
+                            surface3.blit(surface2, (int(pygame.time.get_ticks() / 90 * -1) % 84, 0))
+                            screen.blit(surface3, surface3.get_rect(midtop = text["position"]))
                         else:
                             process_font("Max", text["color"], text["position"], self.main.screen)
                         continue
@@ -348,6 +349,7 @@ class Buttons:
                             self.gui.gui_mode = "build"
                         if button["image_up"] == self.gui.images["sabre_button_up_left"]:
                             self.gui.gui_mode = "stats"
+                            self.gui.tower_displaying = False
                         if button["image_up"] == self.gui.images["gamespeed_button_1x_up"]:
                             self.gui.main.gamespeed = 1
                         if button["image_up"] == self.gui.images["gamespeed_button_2x_up"]:
