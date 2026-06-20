@@ -238,6 +238,13 @@ class Game:
                         else:
                             self.flags = pygame.SCALED
                         pygame.display.set_mode((360, 240), self.flags)
+                        
+                if event.type == pygame.USEREVENT + 1:
+                    pygame.mixer.music.unload()
+                    load_audio("main_theme.ogg", "music")
+                    pygame.mixer.music.play(-1, 0.0, 8000)
+                    pygame.mixer.music.set_volume(0.5)
+                    
             if pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_a]:
                 keyboard_movement[0] -= 1
             if pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_d]:
@@ -248,6 +255,7 @@ class Game:
                 keyboard_movement[1] += 1
             if pygame.key.get_pressed()[pygame.K_ESCAPE] and self.state == "playing":
                 self.gui.gui_mode = "stats"
+                self.gui.tower_displaying = False
                     #DETERMINE PATH INDICES (DEVELOPMENT ONLY)
                     #if event.key in [pygame.K_SPACE, pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN]:
                     #    self.determine_path_index(event.key, pygame.mouse.get_pos())

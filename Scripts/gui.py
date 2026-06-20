@@ -384,10 +384,8 @@ class Buttons:
                                 self.gui.main.add_tower(self.gui.viewing_tower, (360 / 2 - self.gui.main.camera_offset[0], 240 / 2 - self.gui.main.camera_offset[1]))
                         if button["image_up"] == self.gui.images["title_start_button_up"]:
                             self.gui.main.state = "playing"
-                            pygame.mixer.music.unload()
-                            load_audio("main_theme.ogg", "music")
-                            pygame.mixer.music.play(-1, 0.0, 8000)
-                            pygame.mixer.music.set_volume(0.5)
+                            pygame.mixer.music.fadeout(800)
+                            pygame.time.set_timer(pygame.USEREVENT + 1, 800, loops=1)
                                 
                         if button["image_up"] == self.gui.images["compass_button_up_right"] and self.gui.gui_mode == "build":
                             self.gui.viewing_tower = pygame.math.clamp(self.gui.viewing_tower + 1, 0, len(self.gui.main.tower_stats) - 1)
