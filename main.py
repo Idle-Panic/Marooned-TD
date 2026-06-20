@@ -41,7 +41,8 @@ class Game:
         "dark_blue" : (13, 32, 48),
         "light_blue" : (152, 220, 255),
         "yellow" : (255, 231, 55),
-        "black" : (21, 21, 21)
+        "black" : (21, 21, 21),
+        "dark_green" : (23, 40, 8)
         }
         
         self.sounds = {
@@ -50,10 +51,16 @@ class Game:
         "construction" : load_audio("construction.ogg", "sfx"),
         "slingshot" : load_audio("slingshot.ogg", "sfx"),
         "explosion" : load_audio("explosion.ogg", "sfx"),
-        "gunshot" : load_audio("gunshot.ogg", "sfx")
+        "gunshot" : load_audio("gunshot.ogg", "sfx"),
+        "defeated" : load_audio("defeated.ogg", "sfx"),
+        "victory" : load_audio("victory.ogg", "sfx")
         }
         for sound in self.sounds:
             self.sounds[sound].set_volume(0.4)
+        
+        load_audio("title_theme.ogg", "music")
+        pygame.mixer.music.play(-1, 0.0, 1000)
+        pygame.mixer.music.set_volume(0.5)
         
         self.assets = {
         "ground_tiles" : load_images("ground_tiles"),
@@ -92,9 +99,9 @@ class Game:
         ]
         
         self.tower_stats = [
-        {"type" : "coconut_launcher", "price" : [30, 20, 60], "attack" : [1, 1, 3], "speed" : [2, 1.3, 1], "range" : [80, 95, 120], "attack_type" : "normal"},
-        {"type" : "cannon", "price" : [55, 50, 95], "attack" : [3, 7, 18], "speed" : [4, 3.5, 3], "range" : [60, 65, 75], "attack_type" : "area_attack"},
-        {"type" : "puckle_gun", "price" : [60, 65, 99], "attack" : [1, 1, 2], "speed" : [0.8, 0.5, 0.3], "range" : [75, 85, 95], "attack_type" : "normal"},
+        {"type" : "coconut_launcher", "price" : [30, 20, 50], "attack" : [1, 1, 2], "speed" : [2, 1.4, 1.2], "range" : [80, 95, 110], "attack_type" : "normal"},
+        {"type" : "cannon", "price" : [55, 60, 99], "attack" : [3, 7, 12], "speed" : [4.5, 4, 3.5], "range" : [55, 60, 70], "attack_type" : "area_attack"},
+        {"type" : "puckle_gun", "price" : [60, 65, 99], "attack" : [1, 1, 2], "speed" : [0.8, 0.45, 0.28], "range" : [75, 85, 95], "attack_type" : "normal"},
         ]
         
         self.ground_tilemap = Tilemap(self, self.tile_size, 15, convert_tilemap("ground_tiles.txt", self.tile_size, 15), "ground_tiles", 0, False)
@@ -180,6 +187,19 @@ class Game:
                 self.gui.enemy_displaying = enemy
                 return True
         return False
+        
+    def reset(self):
+        self.state = "playing"
+        self.gui.gui_mode = "stats"
+        self.wave = 1
+        self.wave_started = False
+        self.wave_data.wave = 0
+        self.wave_data.wave_index = 0
+        self.coins = 80
+        self.health = 100
+        pygame.mixer.music.play(-1, 0.0, 8000)
+        for tower in self.tower_group:
+            tower.kill()
     
     async def main(self):
         while True:
@@ -195,6 +215,7 @@ class Game:
             
             if self.state != "playing":
                 self.gui.gui_mode = self.state
+                self.gui.hidden = False
             elif self.state == "playing" and self.gui.gui_mode == "title":
                 self.gui.gui_mode = "stats"
             
@@ -225,12 +246,15 @@ class Game:
                 keyboard_movement[1] -= 1
             if pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_s]:
                 keyboard_movement[1] += 1
+            if pygame.key.get_pressed()[pygame.K_ESCAPE] and self.state == "playing":
+                self.gui.gui_mode = "stats"
                     #DETERMINE PATH INDICES (DEVELOPMENT ONLY)
                     #if event.key in [pygame.K_SPACE, pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN]:
                     #    self.determine_path_index(event.key, pygame.mouse.get_pos())
             
             if self.state == "playing":
                 self.gui.components["steering_wheel"].update(self.mouse_being_pressed, self.mouse_pos, self.camera_offset, self.dt, keyboard_movement)
+                self.wave_data.check_and_add(self.wave, self.wave_started, self.time_sped_up)
             
             self.gui.components["buttons"].check_collisions(self.mouse_being_pressed, self.mouse_pos)
             if self.mouse_being_pressed:
@@ -238,13 +262,11 @@ class Game:
                     if self.gui.gui_mode in ["viewing_enemy", "viewing_tower"]:
                         self.gui.gui_mode = "stats"
             
-            self.wave_data.check_and_add(self.wave, self.wave_started, self.time_sped_up)
-            
             self.tower_amount = len(self.tower_group)
             
             self.camera_offset = [pygame.math.clamp(self.camera_offset[0], -120-256, 256), pygame.math.clamp(self.camera_offset[1], -240-128, 128)]
             render_offset = [int(self.camera_offset[0]), int(self.camera_offset[1])]
-            if self.state == "playing":
+            if self.state in ["playing", "defeated", "victory"]:
                 self.water_tilemap.sinewave_move(self.gamespeed)
                 self.water_tilemap.render(self.screen, render_offset)
                 self.ground_tilemap.render(self.screen, render_offset)
@@ -257,6 +279,22 @@ class Game:
                 self.render_group.draw(self.screen, render_offset)
                 self.projectile_group.update(self.screen, render_offset, self.dt, self.gamespeed)
                 self.area_attack_group.update(self.screen, render_offset, self.dt, self.gamespeed)
+                
+                if self.health <= 0 and self.state != "defeated":
+                    self.health = 0
+                    self.state = "defeated"
+                    self.sounds["defeated"].play()
+                    pygame.mixer.music.stop()
+                    if len(self.enemy_group) > 0:
+                        for enemy in self.enemy_group:
+                            enemy.healthbar.kill()
+                            enemy.kill()
+                            
+            if self.wave == 17 and len(self.enemy_group) == 0 and self.wave_data.wave_index == len(self.wave_data.wave_enemies[self.wave - 1]) \
+            and self.health > 0 and self.state != "victory":
+                self.state = "victory"
+                self.sounds["victory"].play()
+                pygame.mixer.music.stop()
             
             self.gui.render(self.screen, render_offset)
 

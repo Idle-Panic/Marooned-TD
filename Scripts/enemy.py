@@ -4,7 +4,7 @@ from Scripts.utilities import load_image, load_images
 class Wave_Data:
     def __init__(self, main, txtfile):
         self.main = main
-        self.wave_amount = 9
+        self.wave_amount = 17
         self.wave_enemies = []
         self.wave_pauses = []
         self.wave_started = False
@@ -43,7 +43,6 @@ class Wave_Data:
                 self.wave_index = 0
         elif wave_started and not self.wave_started:
             self.wave_started = True
-            self.ticks_next_spawn = pygame.time.get_ticks() + 1000 * self.wave_pauses[self.wave][0]
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, data, main):
@@ -60,7 +59,7 @@ class Enemy(pygame.sprite.Sprite):
         self.max_health = data["health"]
         self.health = data["health"]
         self.coins = data["coins"]
-        self.init_time = pygame.time.get_ticks()
+        self.init_time = pygame.time.get_ticks() + main.time_sped_up
         self.distance_travelled = 0
         
         self.healthbar = Healthbar()
@@ -94,7 +93,7 @@ class Enemy(pygame.sprite.Sprite):
             self.image = self.images[int((pygame.time.get_ticks() - self.init_time) / 200 * gamespeed * self.speed) % len(self.images)]
             self.rect = self.image.get_rect(center = self.position)
         
-        self.distance_travelled = (pygame.time.get_ticks() - self.init_time) * self.speed
+        self.distance_travelled = (pygame.time.get_ticks() + main.time_sped_up - self.init_time) * self.speed
         
         self.healthbar.update(self.health, self.max_health, self.position, main)
         

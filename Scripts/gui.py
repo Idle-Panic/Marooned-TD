@@ -67,6 +67,10 @@ class GUI:
         "arrow_button_down_right" : load_image("gui/arrow_button_down.png"),
         "arrow_button_up_left" : pygame.transform.flip(load_image("gui/arrow_button_up.png"), True, False),
         "arrow_button_down_left" : pygame.transform.flip(load_image("gui/arrow_button_down.png"), True, False),
+        "defeated_icon" : load_image("gui/defeated_icon.png"),
+        "victory_icon" :load_image("gui/victory_icon.png"),
+        "green_button_up" : load_image("gui/green_button_up.png"),
+        "green_button_down" : load_image("gui/green_button_down.png"),
         }
         self.components = {"background" : Background(), "buttons" : Buttons(self), "blueprints": Blueprints(self), "icons" : Icons(self), "texts" : Texts(self),
         "steering_wheel" : Steering_Wheel(self)}
@@ -77,16 +81,27 @@ class GUI:
         
         self.components["icons"].icons[25]["image"].set_colorkey((0, 0, 0))
         self.components["icons"].icons[26]["image"].set_colorkey((0, 0, 0))
+        
+        self.dark_transparent_overlay = pygame.Surface((360, 240))
+        self.dark_transparent_overlay.set_alpha(150)
     
     def render(self, screen, camera_offset):
-        if self.tower_displaying and self.gui_mode == "viewing_tower":
+        if self.tower_displaying and not self.main.state in ["defeated", "victory"]:
             pygame.draw.circle(screen, (140, 214, 18), (self.tower_displaying.rect.center[0] + camera_offset[0], self.tower_displaying.rect.center[1] + 12 + camera_offset[1]),
             self.tower_displaying.range, 2)
         
         if self.main.state == "title":
             screen.blit(self.images["title_background"], (0, 0 - pygame.mouse.get_pos()[1]**0.7))
             screen.blit(self.images["title"], (0, 0))
-            
+        
+        elif self.main.state in ["defeated", "victory"]:
+            self.gui_mode = self.main.state
+            screen.blit(self.dark_transparent_overlay, (0, 0))
+            if self.main.state == "defeated":
+                screen.blit(self.images["defeated_icon"], self.images["defeated_icon"].get_rect(center = (180, 48)))
+            elif self.main.state == "victory":
+                screen.blit(self.images["victory_icon"], self.images["victory_icon"].get_rect(center = (180, 48)))
+                
         elif self.main.state == "playing":
             if self.hidden:
                 for button in self.buttons_when_hidden:
@@ -173,6 +188,8 @@ class GUI:
                             process_font(text["text"], text["color"], text["position"], self.main.screen)
             screen.blit(self.components["steering_wheel"].rotated_image, 
             self.components["steering_wheel"].rotated_image.get_rect(center = self.components["steering_wheel"].position))
+        if self.main.state in ["defeated", "victory"]:
+            process_font("Try again?", self.main.colors["dark_green"], (180, 126), self.main.screen)
         
 class Background:
     def __init__(self):
@@ -274,6 +291,7 @@ class Buttons:
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("sell_button_up", (360-self.gui.background_width/2+34, 172), "viewing_tower"))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("arrow_button_up_right", (360-self.gui.background_width-18, 0), False))),
         dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("arrow_button_up_left", (360-self.gui.background_width-18, 0), False))),
+        dict(zip(["image_up", "image_down", "rect", "mode", "being_pressed"], self.get_button_rect("green_button_up", (180, 120), ["defeated", "victory"]))),
         ]
         self.valid_buttons = []
         
@@ -336,6 +354,8 @@ class Buttons:
                             self.gui.main.gamespeed = 2
                         if button["image_up"] == self.gui.images["gamespeed_button_3x_up"]:
                             self.gui.main.gamespeed = 3
+                        if button["image_up"] == self.gui.images["green_button_up"]:
+                            self.gui.main.reset()
                         if button["image_up"] == self.gui.images["upgrade_button_up"]:
                             tower = self.gui.tower_displaying
                             if tower.level < 3 and self.gui.main.coins >= tower.type_dict["price"][tower.level]:
@@ -362,6 +382,7 @@ class Buttons:
                                 self.gui.main.add_tower(self.gui.viewing_tower, (360 / 2 - self.gui.main.camera_offset[0], 240 / 2 - self.gui.main.camera_offset[1]))
                         if button["image_up"] == self.gui.images["title_start_button_up"]:
                             self.gui.main.state = "playing"
+                            pygame.mixer.music.unload()
                             load_audio("main_theme.ogg", "music")
                             pygame.mixer.music.play(-1, 0.0, 8000)
                             pygame.mixer.music.set_volume(0.5)
@@ -445,8 +466,10 @@ class Texts:
         {"text" : "Level 1", "color" : self.gui.main.colors["dark_blue"], "position" : (360-self.gui.background_width/2+31, 78), "mode" : "viewing_tower"},
         {"text" : "upgrade", "color" : self.gui.main.colors["light_blue"], "position" : (360-self.gui.background_width/2-34, 176), "mode" : "viewing_tower"},
         {"text" : "sell(20c)", "color" : self.gui.main.colors["yellow"], "position" : (360-self.gui.background_width/2+34, 176), "mode" : "viewing_tower"},
-        {"text" : "Move by dragging \nthe steering wheel \nor pressing any \narrow keys!", "color" : self.gui.main.colors["black"], 
+        {"text" : "Move by dragging \nthe steering wheel \nor pressing any \nwasd or arrow keys!", "color" : self.gui.main.colors["light_blue"], 
         "position" : (72, 164), "mode" : False},
+        {"text" : "Move by dragging \nthe steering wheel \nor pressing any \nwasd or arrow keys!", "color" : self.gui.main.colors["black"], 
+        "position" : (71, 164), "mode" : False},
         ]
         
     def update(self):
@@ -508,8 +531,9 @@ class Steering_Wheel:
         factor = 1 / (1 + distance * 0.01)
         if (mouse_being_pressed == True and (self.rect.collidepoint(mouse_pos) or self.being_held)) or keyboard_movement != [0, 0]:
             if (offset[0] > 20 or offset[1] > 20) and self.gui.move_information_text_exists:
-                self.gui.move_information_text_exists = False
+                self.gui.components["texts"].texts.pop(27)
                 self.gui.components["texts"].texts.pop(26)
+                self.gui.move_information_text_exists = False
             self.being_held = True
             self.position = (self.norm_pos[0] + offset[0] * factor, self.norm_pos[1] + offset[1] * factor)
             self.move_camera(offset, distance, factor, camera_offset, dt)
