@@ -69,7 +69,14 @@ def swap_img_colors(image_list, colors_in, colors_out):
                 new_img = swap_img_color(new_img, colors_in[i], colors_out[i])
             new_img_list.append(new_img)
         return new_img_list
-    
+
+def get_sign(num):
+    if num > 0:
+        return 1
+    elif num < 0:
+        return -1
+    return 0
+
 class SortedGroup(pygame.sprite.Group):
     def __init__(self):
         super().__init__()

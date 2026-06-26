@@ -528,14 +528,15 @@ class Steering_Wheel:
         if keyboard_movement != [0, 0]:
             offset = (keyboard_movement[0] * 65, keyboard_movement[1] * 35)
         distance = (offset[0]**2 + offset[1]**2)**0.5
-        factor = 1 / (1 + distance * 0.01)
+        factor = 1 / (0.01 + distance * 0.01)
+        render_factor = 1 / (1 + distance * 0.01)
         if (mouse_being_pressed == True and (self.rect.collidepoint(mouse_pos) or self.being_held)) or keyboard_movement != [0, 0]:
             if (offset[0] > 20 or offset[1] > 20) and self.gui.move_information_text_exists:
                 self.gui.components["texts"].texts.pop(27)
                 self.gui.components["texts"].texts.pop(26)
                 self.gui.move_information_text_exists = False
             self.being_held = True
-            self.position = (self.norm_pos[0] + offset[0] * factor, self.norm_pos[1] + offset[1] * factor)
+            self.position = (self.norm_pos[0] + offset[0] * render_factor, self.norm_pos[1] + offset[1] * render_factor)
             self.move_camera(offset, distance, factor, camera_offset, dt)
             self.rotation -= offset[0] / 32 * dt
         else:
@@ -546,11 +547,7 @@ class Steering_Wheel:
         self.rotated_image = pygame.transform.rotate(self.image, self.rotation)
         
     def move_camera(self, offset, distance, factor, camera_offset, dt):
-        try:
-            self.gui.main.camera_offset[0] -= offset[0] / distance / factor * 2 * dt
-        except:
-            pass
-        try:
-            self.gui.main.camera_offset[1] -= offset[1] / distance / factor * 2 * dt
-        except:
-            pass
+        if distance == 0:
+            return None
+        self.gui.main.camera_offset[0] -= offset[0] / distance / factor * 3.2 * dt
+        self.gui.main.camera_offset[1] -= offset[1] / distance / factor * 3.2 * dt

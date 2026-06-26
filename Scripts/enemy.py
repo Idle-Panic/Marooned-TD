@@ -1,5 +1,5 @@
 import pygame
-from Scripts.utilities import load_image, load_images
+from Scripts.utilities import load_image, load_images, get_sign
 
 class Wave_Data:
     def __init__(self, main, txtfile):
@@ -70,10 +70,10 @@ class Enemy(pygame.sprite.Sprite):
 
     def update(self, screen, camera_offset, path, main, dt, gamespeed):
         for i in range(gamespeed):
-            distance = (self.get_sign(self.position[0] - path[self.path_index][0])**2 + self.get_sign(self.position[1] - path[self.path_index][1])**2)**0.5
+            distance = (get_sign(self.position[0] - path[self.path_index][0])**2 + get_sign(self.position[1] - path[self.path_index][1])**2)**0.5
             if distance != 0:
-                self.position[0] -= self.get_sign(self.position[0] - path[self.path_index][0]) / distance * self.speed * dt
-                self.position[1] -= self.get_sign(self.position[1] - path[self.path_index][1]) / distance * self.speed * dt
+                self.position[0] -= get_sign(self.position[0] - path[self.path_index][0]) / distance * self.speed * dt
+                self.position[1] -= get_sign(self.position[1] - path[self.path_index][1]) / distance * self.speed * dt
             elif main.health > 0:
                 self.kill()
                 self.healthbar.kill()
@@ -96,13 +96,6 @@ class Enemy(pygame.sprite.Sprite):
         self.distance_travelled = (pygame.time.get_ticks() + main.time_sped_up - self.init_time) * self.speed
         
         self.healthbar.update(self.health, self.max_health, self.position, main)
-        
-    def get_sign(self, num):
-        if num > 0:
-            return 1
-        elif num < 0:
-            return -1
-        return 0
         
 class Healthbar(pygame.sprite.Sprite):
     def __init__(self):
